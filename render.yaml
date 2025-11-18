@@ -1,0 +1,6 @@
+services:
+  - type: static
+    name: postai-frontend
+    buildCommand: ""
+    staticPublishPath: .
+
