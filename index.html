@@ -45,18 +45,48 @@
     // For same-domain deployment, use: '/api'
     const BACKEND_URL = window.BACKEND_URL || 'https://postai-backend.onrender.com/api';
     
-    fetch(BACKEND_URL)
+    const outputEl = document.getElementById("output");
+    
+    // Add timeout to show error if request takes too long
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    fetch(BACKEND_URL, { 
+      signal: controller.signal,
+      mode: 'cors'
+    })
       .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+        clearTimeout(timeoutId);
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+        }
         return r.json();
       })
       .then(d => {
-        document.getElementById("output").textContent = JSON.stringify(d, null, 2);
-        document.getElementById("output").className = "success";
+        outputEl.textContent = JSON.stringify(d, null, 2);
+        outputEl.className = "success";
       })
       .catch(e => {
-        document.getElementById("output").textContent = "Error: " + e.message + "\n\nBackend URL: " + BACKEND_URL + "\n\nMake sure the backend is running and accessible.";
-        document.getElementById("output").className = "error";
+        clearTimeout(timeoutId);
+        let errorMsg = "Error: " + e.message;
+        
+        if (e.name === 'AbortError') {
+          errorMsg = "Request timed out. The backend may be sleeping or unreachable.";
+        } else if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+          errorMsg = "Network error: Cannot reach the backend server.\n\nPossible issues:\n";
+          errorMsg += "1. Backend URL is incorrect: " + BACKEND_URL + "\n";
+          errorMsg += "2. Backend service is not deployed on Render\n";
+          errorMsg += "3. Backend service is sleeping (Render free tier)\n";
+          errorMsg += "4. CORS configuration issue\n\n";
+          errorMsg += "Check your Render dashboard to verify the backend is running.";
+        }
+        
+        outputEl.textContent = errorMsg + "\n\nBackend URL: " + BACKEND_URL;
+        outputEl.className = "error";
+        
+        // Log to console for debugging
+        console.error("Backend connection error:", e);
+        console.log("Attempted URL:", BACKEND_URL);
       });
   </script>
 </body>
