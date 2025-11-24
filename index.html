@@ -76,6 +76,28 @@
       color: var(--primary);
     }
 
+    .badge {
+      display: inline-block;
+      margin-left: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .badge.pro {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .badge.premium {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
     .btn-primary {
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
@@ -464,12 +486,12 @@
   <!-- Navigation -->
   <nav class="navbar">
     <div class="nav-container">
-      <div class="logo">🚀 PostAI</div>
+      <div class="logo">🚀 PostAI <span class="badge" id="subscriptionBadge">FREE</span></div>
       <div class="nav-links">
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
         <a href="#about">About</a>
-        <a href="#" class="btn-primary">Get Started</a>
+        <a href="#account" class="btn-primary">Get Started</a>
       </div>
     </div>
   </nav>
@@ -558,6 +580,68 @@
         <div class="feature-icon">👥</div>
         <h3>Team Collaboration</h3>
         <p>Cloud-based access allows multiple team members to work together seamlessly on content campaigns.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Account / Login Section -->
+  <section class="features" id="account" style="background: white;">
+    <div class="container">
+      <h2 class="section-title">Your Account</h2>
+      <p class="section-subtitle">Sign in with your email to access Pro features and manage your subscription.</p>
+      
+      <div class="generator-card" style="max-width: 600px; margin-top: 2rem;">
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginEmail">Email address</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com" required />
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%; padding: 0.9rem;">Sign in / Continue</button>
+        </form>
+        <div id="loginStatus" style="margin-top: 1rem; font-size: 0.95rem; color: var(--gray);"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="features" id="pricing">
+    <div class="container">
+      <h2 class="section-title">Simple, Transparent Pricing</h2>
+      <p class="section-subtitle">Start for free, upgrade when you need more power.</p>
+      
+      <div class="features-grid">
+        <div class="feature-card" id="freePlanCard">
+          <h3>Free</h3>
+          <p>Basic AI generation with limited usage. Perfect for testing and small projects.</p>
+          <ul style="margin: 1rem 0 1.5rem 1.25rem; color: var(--gray); font-size: 0.95rem;">
+            <li>Up to 20 generations / month</li>
+            <li>Single user workspace</li>
+            <li>Access to core templates</li>
+          </ul>
+          <button id="freePlanButton" class="btn-secondary" disabled>Current Plan</button>
+        </div>
+
+        <div class="feature-card" id="proPlanCard">
+          <h3>Pro</h3>
+          <p>Higher limits, priority generation, and scheduling tools for growing teams.</p>
+          <ul style="margin: 1rem 0 1.5rem 1.25rem; color: var(--gray); font-size: 0.95rem;">
+            <li>Up to 500 generations / month</li>
+            <li>Advanced scheduling</li>
+            <li>Priority processing</li>
+          </ul>
+          <button id="proPlanButton" class="btn-primary" type="button">Upgrade to Pro</button>
+        </div>
+
+        <div class="feature-card" id="premiumPlanCard">
+          <h3>Premium</h3>
+          <p>Unlimited requests, best performance, and premium support for serious operators.</p>
+          <ul style="margin: 1rem 0 1.5rem 1.25rem; color: var(--gray); font-size: 0.95rem;">
+            <li>Unlimited generations</li>
+            <li>Highest priority queue</li>
+            <li>Dedicated support</li>
+          </ul>
+          <button id="premiumPlanButton" class="btn-primary" type="button">Upgrade to Premium</button>
+        </div>
       </div>
     </div>
   </section>
@@ -686,7 +770,7 @@
     <div class="footer-content">
       <h3 style="margin-bottom: 1rem;">🚀 PostAI</h3>
       <p>AI-Powered Social Media Automation Platform</p>
-      <p style="margin-top: 2rem; opacity: 0.8;">© 2024 PostAI. All rights reserved.</p>
+      <p style="margin-top: 2rem; opacity: 0.8;">&copy; 2024 PostAI. All rights reserved.</p>
     </div>
   </footer>
 
@@ -703,6 +787,165 @@
     const messageContainer = document.getElementById('messageContainer');
     const scheduleCheckbox = document.getElementById('schedulePost');
     const scheduleTime = document.getElementById('scheduleTime');
+    const subscriptionBadge = document.getElementById('subscriptionBadge');
+    const loginForm = document.getElementById('loginForm');
+    const loginEmailInput = document.getElementById('loginEmail');
+    const loginStatus = document.getElementById('loginStatus');
+    const freePlanButton = document.getElementById('freePlanButton');
+    const proPlanButton = document.getElementById('proPlanButton');
+    const premiumPlanButton = document.getElementById('premiumPlanButton');
+
+    let authToken = localStorage.getItem('postai_token') || null;
+    let currentUser = null;
+
+    function setAuth(token, user) {
+      authToken = token;
+      currentUser = user;
+      if (token) {
+        localStorage.setItem('postai_token', token);
+      } else {
+        localStorage.removeItem('postai_token');
+      }
+      if (user) {
+        localStorage.setItem('postai_user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('postai_user');
+      }
+      updateSubscriptionUI();
+    }
+
+    function loadUserFromStorage() {
+      const storedUser = localStorage.getItem('postai_user');
+      if (storedUser) {
+        try {
+          currentUser = JSON.parse(storedUser);
+        } catch (e) {
+          currentUser = null;
+        }
+      }
+      updateSubscriptionUI();
+    }
+
+    function updateSubscriptionUI() {
+      if (!subscriptionBadge) return;
+      subscriptionBadge.classList.remove('pro', 'premium');
+
+      const plan = currentUser?.subscriptionPlan || 'free';
+      if (plan === 'pro') {
+        subscriptionBadge.textContent = 'PRO';
+        subscriptionBadge.classList.add('pro');
+      } else if (plan === 'premium') {
+        subscriptionBadge.textContent = 'PREMIUM';
+        subscriptionBadge.classList.add('premium');
+      } else {
+        subscriptionBadge.textContent = 'FREE';
+      }
+
+      if (freePlanButton) {
+        freePlanButton.disabled = plan === 'free';
+        freePlanButton.textContent = plan === 'free' ? 'Current Plan' : 'Switch to Free';
+      }
+      if (proPlanButton) {
+        proPlanButton.disabled = plan === 'pro';
+        proPlanButton.textContent = plan === 'pro' ? 'Current Plan' : 'Upgrade to Pro';
+      }
+      if (premiumPlanButton) {
+        premiumPlanButton.disabled = plan === 'premium';
+        premiumPlanButton.textContent = plan === 'premium' ? 'Current Plan' : 'Upgrade to Premium';
+      }
+    }
+
+    async function fetchCurrentUser() {
+      if (!authToken) {
+        loadUserFromStorage();
+        return;
+      }
+      try {
+        const response = await fetch(BACKEND_URL + '/auth/me', {
+          headers: {
+            'Authorization': 'Bearer ' + authToken
+          }
+        });
+        if (!response.ok) {
+          if (response.status === 401) {
+            setAuth(null, null);
+          }
+          return;
+        }
+        const data = await response.json();
+        setAuth(authToken, data.user);
+        if (loginStatus && data.user) {
+          loginStatus.textContent = `Signed in as ${data.user.email}`;
+        }
+      } catch (error) {
+        console.error('Failed to fetch current user', error);
+      }
+    }
+
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = loginEmailInput.value.trim();
+        if (!email) return;
+        loginStatus.textContent = 'Signing in...';
+        try {
+          const response = await fetch(BACKEND_URL + '/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+          });
+          if (!response.ok) {
+            throw new Error('Login failed');
+          }
+          const data = await response.json();
+          setAuth(data.token, data.user);
+          loginStatus.textContent = `Signed in as ${data.user.email}`;
+        } catch (error) {
+          loginStatus.textContent = 'Unable to sign in. Please try again.';
+        }
+      });
+    }
+
+    async function createCheckout(variantId) {
+      if (!authToken) {
+        alert('Please sign in first to upgrade your plan.');
+        return;
+      }
+      try {
+        const response = await fetch(BACKEND_URL + '/payments/create-checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + authToken
+          },
+          body: JSON.stringify({ variantId })
+        });
+        if (!response.ok) {
+          throw new Error('Unable to start checkout');
+        }
+        const data = await response.json();
+        window.location.href = data.url;
+      } catch (error) {
+        alert('Failed to start checkout. Please try again.');
+      }
+    }
+
+    if (proPlanButton) {
+      proPlanButton.addEventListener('click', () => {
+        createCheckout(window.LEMONSQUEEZY_PRO_VARIANT_ID);
+      });
+    }
+
+    if (premiumPlanButton) {
+      premiumPlanButton.addEventListener('click', () => {
+        createCheckout(window.LEMONSQUEEZY_PREMIUM_VARIANT_ID);
+      });
+    }
+
+    loadUserFromStorage();
+    fetchCurrentUser();
 
     // Platform checkbox styling
     document.querySelectorAll('.platform-checkbox input').forEach(checkbox => {
@@ -756,6 +999,11 @@
         return;
       }
 
+      if (!authToken) {
+        showMessage('Please sign in from the Account section before generating content.', 'error');
+        return;
+      }
+
       // Show loading state
       submitBtn.disabled = true;
       btnText.textContent = 'Generating Content...';
@@ -768,6 +1016,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + authToken
           },
           body: JSON.stringify({
             contentType,
@@ -780,6 +1029,9 @@
         });
 
         if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Authentication required. Please sign in from the Account section.');
+          }
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
