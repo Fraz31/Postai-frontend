@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,7 +23,7 @@
       --dark: #1e293b;
       --light: #f8fafc;
       --gray: #64748b;
-      
+
       /* Dark mode colors */
       --bg-dark: #0f172a;
       --bg-dark-secondary: #1e293b;
@@ -38,7 +39,7 @@
 
     body.dark-mode .navbar {
       background: var(--bg-dark-secondary);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     }
 
     body.dark-mode .nav-links a {
@@ -64,7 +65,7 @@
     /* Navigation */
     .navbar {
       background: white;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       position: sticky;
       top: 0;
       z-index: 1000;
@@ -220,6 +221,7 @@
         opacity: 0;
         transform: translateY(-20px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -286,7 +288,7 @@
       background: white;
       border-radius: 12px;
       padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       margin-bottom: 2rem;
       animation: slideInUp 0.6s ease-out;
     }
@@ -296,6 +298,7 @@
         opacity: 0;
         transform: translateY(20px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -315,12 +318,25 @@
       animation: pulse 2s infinite;
     }
 
-    .status-dot.connected { background: var(--success); }
-    .status-dot.error { background: var(--danger); animation: none; }
+    .status-dot.connected {
+      background: var(--success);
+    }
+
+    .status-dot.error {
+      background: var(--danger);
+      animation: none;
+    }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
     }
 
     /* Dashboard Grid */
@@ -335,7 +351,7 @@
       background: white;
       border-radius: 12px;
       padding: 2rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s, box-shadow 0.2s;
       opacity: 0;
       animation: fadeInUp 0.6s ease-out forwards;
@@ -346,6 +362,7 @@
         opacity: 0;
         transform: translateY(20px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -354,7 +371,7 @@
 
     .dashboard-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
     }
 
     .dashboard-card h3 {
@@ -399,8 +416,13 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
     }
 
     .section-subtitle {
@@ -422,7 +444,7 @@
       background: white;
       padding: 2rem;
       border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       opacity: 0;
       animation: fadeInUp 0.6s ease-out forwards;
     }
@@ -456,7 +478,7 @@
       background: white;
       border-radius: 12px;
       padding: 2.5rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       max-width: 800px;
       margin: 0 auto;
     }
@@ -597,7 +619,7 @@
       display: inline-block;
       width: 20px;
       height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
+      border: 3px solid rgba(255, 255, 255, .3);
       border-radius: 50%;
       border-top-color: white;
       animation: spin 1s linear infinite;
@@ -605,7 +627,9 @@
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     /* Stats Section */
@@ -694,7 +718,7 @@
       background: white;
       flex-direction: column;
       gap: 0;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       z-index: 999;
       max-height: calc(100vh - 60px);
       overflow-y: auto;
@@ -731,8 +755,10 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-      .hero h1 { font-size: 2.5rem; }
-      
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
       .hamburger {
         display: flex;
       }
@@ -741,8 +767,8 @@
         display: none;
       }
 
-      .dashboard { 
-        grid-template-columns: 1fr; 
+      .dashboard {
+        grid-template-columns: 1fr;
       }
 
       .stat-item h3 {
@@ -763,6 +789,7 @@
     }
   </style>
 </head>
+
 <body>
   <!-- Navigation -->
   <nav class="navbar" role="navigation" aria-label="Main navigation">
@@ -783,7 +810,7 @@
         <span></span>
       </button>
     </div>
-    
+
     <!-- Mobile Navigation -->
     <div class="mobile-nav" id="mobileNav">
       <a href="#features">Features</a>
@@ -797,7 +824,8 @@
   <section class="hero">
     <div class="hero-content">
       <h1>AI-Powered Social Media Automation</h1>
-      <p>Transform your content strategy with intelligent automation. Generate, schedule, and publish across all platforms with one powerful platform.</p>
+      <p>Transform your content strategy with intelligent automation. Generate, schedule, and publish across all
+        platforms with one powerful platform.</p>
       <div class="hero-buttons">
         <a href="#generator" class="btn-primary">Start Creating</a>
         <a href="#features" class="btn-secondary">Learn More</a>
@@ -841,38 +869,39 @@
   <section class="features" id="features">
     <h2 class="section-title">Powerful Features for Modern Teams</h2>
     <p class="section-subtitle">Everything you need to automate your social media presence</p>
-    
+
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">🤖</div>
         <h3>AI Content Generation</h3>
-        <p>Automatically create engaging social media posts with AI-generated text and images. Save hours of content creation time.</p>
+        <p>Automatically create engaging social media posts with AI-generated text and images. Save hours of content
+          creation time.</p>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">📱</div>
         <h3>Multi-Platform Publishing</h3>
         <p>Schedule and post content to Facebook, Twitter, Instagram, LinkedIn, and more from one unified dashboard.</p>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">⚡</div>
         <h3>Content Automation</h3>
         <p>Transform long-form content (blogs, videos) into shareable snippets automatically with intelligent bots.</p>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">📅</div>
         <h3>Smart Scheduling</h3>
         <p>Queue posts for scheduled publishing across multiple channels. Batch operations for maximum efficiency.</p>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">✨</div>
         <h3>Content Enrichment</h3>
         <p>Enhance existing content with AI improvements, optimization, and personalized recommendations.</p>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">👥</div>
         <h3>Team Collaboration</h3>
@@ -886,7 +915,7 @@
     <div class="container">
       <h2 class="section-title">Your Account</h2>
       <p class="section-subtitle">Sign in with your email to access Pro features and manage your subscription.</p>
-      
+
       <div class="generator-card" style="max-width: 600px; margin-top: 2rem;">
         <form id="loginForm">
           <div class="form-group">
@@ -905,7 +934,7 @@
     <div class="container">
       <h2 class="section-title">Simple, Transparent Pricing</h2>
       <p class="section-subtitle">Start for free, upgrade when you need more power.</p>
-      
+
       <div class="features-grid">
         <div class="feature-card" id="freePlanCard">
           <h3>Free</h3>
@@ -948,7 +977,7 @@
     <div class="container">
       <h2 class="section-title">Create Your Content</h2>
       <p class="section-subtitle">Generate AI-powered social media posts in seconds</p>
-      
+
       <div class="generator-card">
         <form id="contentForm">
           <div class="form-group">
@@ -964,13 +993,8 @@
 
           <div class="form-group">
             <label for="prompt">What would you like to create?</label>
-            <textarea 
-              id="prompt" 
-              placeholder="Example: Create a Twitter post about the benefits of AI in marketing..."
-              required
-              aria-label="Enter your content prompt"
-              maxlength="1000"
-            ></textarea>
+            <textarea id="prompt" placeholder="Example: Create a Twitter post about the benefits of AI in marketing..."
+              required aria-label="Enter your content prompt" maxlength="1000"></textarea>
             <div class="char-count"><span id="charCount">0</span>/1000</div>
           </div>
 
@@ -998,10 +1022,11 @@
 
           <div class="form-group">
             <label>
-              <input type="checkbox" id="schedulePost" aria-label="Schedule post for later"> 
+              <input type="checkbox" id="schedulePost" aria-label="Schedule post for later">
               Schedule for later
             </label>
-            <input type="datetime-local" id="scheduleTime" style="margin-top: 0.5rem; display: none;" aria-label="Select schedule time">
+            <input type="datetime-local" id="scheduleTime" style="margin-top: 0.5rem; display: none;"
+              aria-label="Select schedule time">
           </div>
 
           <button type="submit" class="btn-primary" id="submitBtn" style="width: 100%; padding: 1rem; cursor: pointer;">
@@ -1025,38 +1050,38 @@
     <div class="container">
       <h2 class="section-title">Your Content Dashboard</h2>
       <p class="section-subtitle">Manage all your social media content in one place</p>
-      
+
       <div class="dashboard">
         <div class="dashboard-card">
           <div class="card-icon">📊</div>
           <h3>Analytics</h3>
           <p>Track performance metrics, engagement rates, and audience growth across all platforms.</p>
         </div>
-        
+
         <div class="dashboard-card">
           <div class="card-icon">📝</div>
           <h3>Content Library</h3>
           <p>Store and organize all your generated content. Easy search and reuse for future campaigns.</p>
         </div>
-        
+
         <div class="dashboard-card">
           <div class="card-icon">🔄</div>
           <h3>Automation Rules</h3>
           <p>Set up intelligent automation rules to transform and repurpose content automatically.</p>
         </div>
-        
+
         <div class="dashboard-card">
           <div class="card-icon">👥</div>
           <h3>Team Workspace</h3>
           <p>Collaborate with your team. Assign roles, review content, and manage approvals.</p>
         </div>
-        
+
         <div class="dashboard-card">
           <div class="card-icon">🎨</div>
           <h3>Brand Templates</h3>
           <p>Create and save brand-specific templates for consistent messaging across all content.</p>
         </div>
-        
+
         <div class="dashboard-card">
           <div class="card-icon">⚙️</div>
           <h3>API Access</h3>
@@ -1088,7 +1113,7 @@
     const messageContainer = document.getElementById('messageContainer');
     const scheduleCheckbox = document.getElementById('schedulePost');
     const scheduleTime = document.getElementById('scheduleTime');
-<<<<<<< HEAD
+
     const subscriptionBadge = document.getElementById('subscriptionBadge');
     const loginForm = document.getElementById('loginForm');
     const loginEmailInput = document.getElementById('loginEmail');
@@ -1248,7 +1273,7 @@
 
     loadUserFromStorage();
     fetchCurrentUser();
-=======
+
     const themeToggle = document.getElementById('themeToggle');
     const hamburger = document.getElementById('hamburger');
     const mobileNav = document.getElementById('mobileNav');
@@ -1289,17 +1314,17 @@
     promptTextarea.addEventListener('input', () => {
       charCount.textContent = promptTextarea.value.length;
     });
->>>>>>> d3eab4d2e3e19f21545012cc2b75c152136698f9
+
 
     // Platform checkbox styling
     document.querySelectorAll('.platform-checkbox input').forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
+      checkbox.addEventListener('change', function () {
         this.closest('.platform-checkbox').classList.toggle('checked', this.checked);
       });
     });
 
     // Schedule toggle
-    scheduleCheckbox.addEventListener('change', function() {
+    scheduleCheckbox.addEventListener('change', function () {
       scheduleTime.style.display = this.checked ? 'block' : 'none';
     });
 
@@ -1328,9 +1353,9 @@
         const response = await fetch(BACKEND_URL, {
           signal: AbortSignal.timeout(10000)
         });
-        
+
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
+
         const data = await response.json();
         statusDot.className = 'status-dot connected';
         statusText.textContent = '✅ Backend Connected - Ready to Generate';
@@ -1345,7 +1370,7 @@
     // Handle form submission
     contentForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       const contentType = document.getElementById('contentType').value;
       const prompt = document.getElementById('prompt').value.trim();
       const platforms = Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value);
@@ -1399,16 +1424,16 @@
         }
 
         const data = await response.json();
-        
+
         // Show result
         resultBox.classList.add('show');
         resultContent.textContent = JSON.stringify(data, null, 2);
-        
+
         showMessage('Content generated successfully! Ready to publish.', 'success');
 
       } catch (error) {
         let errorMsg = 'Failed to generate content. ';
-        
+
         if (error.name === 'AbortError') {
           errorMsg += 'Request timed out. The backend may be processing.';
         } else if (error.message.includes('Failed to fetch')) {
@@ -1416,7 +1441,7 @@
         } else {
           errorMsg += error.message;
         }
-        
+
         showMessage(errorMsg, 'error');
         console.error('Generation error:', error);
       } finally {
@@ -1432,7 +1457,7 @@
           ${message}
         </div>
       `;
-      
+
       setTimeout(() => {
         messageContainer.innerHTML = '';
       }, 5000);
@@ -1453,4 +1478,5 @@
     checkBackend();
   </script>
 </body>
+
 </html>
