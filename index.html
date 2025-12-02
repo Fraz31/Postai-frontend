@@ -4,1479 +4,312 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PostAI - AI-Powered Social Media Automation Platform</title>
+  <title>PostAI - Intelligent Social Media Automation</title>
+  <meta name="description"
+    content="Automate your social media presence with AI. Generate, schedule, and publish content across all platforms.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
   <script src="config.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --primary: #6366f1;
-      --primary-dark: #4f46e5;
-      --secondary: #8b5cf6;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --dark: #1e293b;
-      --light: #f8fafc;
-      --gray: #64748b;
-
-      /* Dark mode colors */
-      --bg-dark: #0f172a;
-      --bg-dark-secondary: #1e293b;
-      --text-dark: #f1f5f9;
-      --border-dark: #334155;
-    }
-
-    /* Dark mode */
-    body.dark-mode {
-      background: var(--bg-dark);
-      color: var(--text-dark);
-    }
-
-    body.dark-mode .navbar {
-      background: var(--bg-dark-secondary);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    }
-
-    body.dark-mode .nav-links a {
-      color: var(--text-dark);
-    }
-
-    body.dark-mode .status-card,
-    body.dark-mode .dashboard-card,
-    body.dark-mode .generator-card,
-    body.dark-mode .feature-card {
-      background: var(--bg-dark-secondary);
-      border: 1px solid var(--border-dark);
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: #ffffff;
-      color: var(--dark);
-      line-height: 1.6;
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    /* Navigation */
-    .navbar {
-      background: white;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      padding: 1rem 0;
-      transition: all 0.3s;
-    }
-
-    .nav-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 2rem;
-      align-items: center;
-    }
-
-    .nav-links a {
-      text-decoration: none;
-      color: var(--dark);
-      font-weight: 500;
-      transition: color 0.3s;
-    }
-
-    .nav-links a:hover {
-      color: var(--primary);
-    }
-
-    .badge {
-      display: inline-block;
-      margin-left: 0.75rem;
-      padding: 0.15rem 0.5rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      background: #e5e7eb;
-      color: #111827;
-    }
-
-    .badge.pro {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-
-    .badge.premium {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    /* Hamburger Menu */
-    .hamburger {
-      display: none;
-      flex-direction: column;
-      cursor: pointer;
-      gap: 6px;
-      background: none;
-      border: none;
-      padding: 0.5rem;
-    }
-
-    .hamburger span {
-      width: 25px;
-      height: 3px;
-      background: var(--dark);
-      border-radius: 2px;
-      transition: all 0.3s;
-    }
-
-    body.dark-mode .hamburger span {
-      background: var(--text-dark);
-    }
-
-    .hamburger.active span:nth-child(1) {
-      transform: rotate(45deg) translate(8px, 8px);
-    }
-
-    .hamburger.active span:nth-child(2) {
-      opacity: 0;
-    }
-
-    .hamburger.active span:nth-child(3) {
-      transform: rotate(-45deg) translate(8px, -8px);
-    }
-
-    /* Theme Toggle */
-    .theme-toggle {
-      background: none;
-      border: 2px solid var(--primary);
-      color: var(--primary);
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1.2rem;
-      transition: all 0.3s;
-    }
-
-    .theme-toggle:hover {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* Hero Section */
-    .hero {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 6rem 2rem;
-      text-align: center;
-      animation: fadeInDown 0.8s ease-out;
-    }
-
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .hero-content {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .hero h1 {
-      font-size: 3.5rem;
-      font-weight: 800;
-      margin-bottom: 1.5rem;
-      line-height: 1.2;
-    }
-
-    .hero p {
-      font-size: 1.25rem;
-      margin-bottom: 2rem;
-      opacity: 0.95;
-    }
-
-    .hero-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .btn-secondary {
-      background: white;
-      color: var(--primary);
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: transform 0.2s;
-    }
-
-    .btn-secondary:hover {
-      transform: translateY(-2px);
-    }
-
-    /* Container */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 2rem;
-    }
-
-    /* Status Card */
-    .status-section {
-      margin: 2rem auto;
-      max-width: 1200px;
-      padding: 0 2rem;
-    }
-
-    .status-card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
-      animation: slideInUp 0.6s ease-out;
-    }
-
-    @keyframes slideInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .status-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-
-    .status-dot.connected {
-      background: var(--success);
-    }
-
-    .status-dot.error {
-      background: var(--danger);
-      animation: none;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.5;
-      }
-    }
-
-    /* Dashboard Grid */
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-      margin: 3rem 0;
-    }
-
-    .dashboard-card {
-      background: white;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
-      opacity: 0;
-      animation: fadeInUp 0.6s ease-out forwards;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .dashboard-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-    }
-
-    .dashboard-card h3 {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-      color: var(--dark);
-    }
-
-    .dashboard-card p {
-      color: var(--gray);
-      margin-bottom: 1.5rem;
-    }
-
-    .card-icon {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-
-    /* Features Section */
-    .features {
-      background: var(--light);
-      padding: 4rem 2rem;
-      margin: 4rem 0;
-    }
-
-    body.dark-mode .features {
-      background: var(--bg-dark-secondary);
-    }
-
-    .section-title {
-      text-align: center;
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      color: var(--dark);
-      opacity: 0;
-      animation: fadeIn 0.8s ease-out 0.2s forwards;
-    }
-
-    body.dark-mode .section-title {
-      color: var(--text-dark);
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
-    .section-subtitle {
-      text-align: center;
-      color: var(--gray);
-      font-size: 1.125rem;
-      margin-bottom: 3rem;
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .feature-card {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      opacity: 0;
-      animation: fadeInUp 0.6s ease-out forwards;
-    }
-
-    .feature-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-    }
-
-    .feature-card h3 {
-      font-size: 1.25rem;
-      margin-bottom: 0.75rem;
-      color: var(--dark);
-    }
-
-    body.dark-mode .feature-card h3 {
-      color: var(--text-dark);
-    }
-
-    .feature-card p {
-      color: var(--gray);
-      line-height: 1.6;
-    }
-
-    /* Content Generator */
-    .generator-section {
-      padding: 4rem 2rem;
-    }
-
-    .generator-card {
-      background: white;
-      border-radius: 12px;
-      padding: 2.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: var(--dark);
-    }
-
-    body.dark-mode .form-group label {
-      color: var(--text-dark);
-    }
-
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.3s;
-      background: white;
-      color: var(--dark);
-    }
-
-    body.dark-mode .form-group input,
-    body.dark-mode .form-group textarea,
-    body.dark-mode .form-group select {
-      background: var(--bg-dark-secondary);
-      color: var(--text-dark);
-      border-color: var(--border-dark);
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-
-    .form-group textarea {
-      min-height: 120px;
-      resize: vertical;
-      font-family: inherit;
-    }
-
-    .char-count {
-      font-size: 0.875rem;
-      color: var(--gray);
-      margin-top: 0.25rem;
-    }
-
-    .platform-selector {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .platform-checkbox {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    body.dark-mode .platform-checkbox {
-      border-color: var(--border-dark);
-    }
-
-    .platform-checkbox:hover {
-      border-color: var(--primary);
-      background: #f8fafc;
-    }
-
-    body.dark-mode .platform-checkbox:hover {
-      background: rgba(99, 102, 241, 0.1);
-    }
-
-    .platform-checkbox input[type="checkbox"] {
-      width: auto;
-      cursor: pointer;
-    }
-
-    .platform-checkbox.checked {
-      border-color: var(--primary);
-      background: #eef2ff;
-    }
-
-    body.dark-mode .platform-checkbox.checked {
-      background: rgba(99, 102, 241, 0.2);
-    }
-
-    .result-box {
-      background: var(--light);
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin-top: 1.5rem;
-      min-height: 100px;
-      display: none;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    body.dark-mode .result-box {
-      background: var(--bg-dark-secondary);
-    }
-
-    .result-box.show {
-      display: block;
-    }
-
-    .result-box pre {
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      color: var(--dark);
-    }
-
-    body.dark-mode .result-box pre {
-      color: var(--text-dark);
-    }
-
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255, 255, 255, .3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 1s linear infinite;
-      margin-right: 0.5rem;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Stats Section */
-    .stats {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      padding: 4rem 2rem;
-      margin: 4rem 0;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    .stat-item {
-      opacity: 0;
-      animation: fadeInUp 0.6s ease-out forwards;
-    }
-
-    .stat-item h3 {
-      font-size: 3rem;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-item p {
-      font-size: 1.125rem;
-      opacity: 0.9;
-    }
-
-    /* Footer */
-    .footer {
-      background: var(--dark);
-      color: white;
-      padding: 3rem 2rem;
-      text-align: center;
-    }
-
-    .footer-content {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    /* Messages */
-    .message {
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 1rem;
-      animation: slideInUp 0.3s ease-out;
-    }
-
-    .message.success {
-      background: #d1fae5;
-      color: #065f46;
-      border-left: 4px solid var(--success);
-    }
-
-    .message.error {
-      background: #fee2e2;
-      color: #991b1b;
-      border-left: 4px solid var(--danger);
-    }
-
-    body.dark-mode .message.success {
-      background: rgba(16, 185, 129, 0.2);
-      color: #6ee7b7;
-    }
-
-    body.dark-mode .message.error {
-      background: rgba(239, 68, 68, 0.2);
-      color: #fca5a5;
-    }
-
-    /* Mobile Menu */
-    .mobile-nav {
-      display: none;
-      position: fixed;
-      top: 60px;
-      left: 0;
-      right: 0;
-      background: white;
-      flex-direction: column;
-      gap: 0;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      z-index: 999;
-      max-height: calc(100vh - 60px);
-      overflow-y: auto;
-    }
-
-    body.dark-mode .mobile-nav {
-      background: var(--bg-dark-secondary);
-    }
-
-    .mobile-nav.active {
-      display: flex;
-    }
-
-    .mobile-nav a {
-      padding: 1rem 2rem;
-      text-decoration: none;
-      color: var(--dark);
-      border-bottom: 1px solid #e5e7eb;
-      transition: background 0.2s;
-    }
-
-    body.dark-mode .mobile-nav a {
-      color: var(--text-dark);
-      border-bottom-color: var(--border-dark);
-    }
-
-    .mobile-nav a:hover {
-      background: var(--light);
-    }
-
-    body.dark-mode .mobile-nav a:hover {
-      background: rgba(99, 102, 241, 0.1);
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .hero h1 {
-        font-size: 2.5rem;
-      }
-
-      .hamburger {
-        display: flex;
-      }
-
-      .nav-links {
-        display: none;
-      }
-
-      .dashboard {
-        grid-template-columns: 1fr;
-      }
-
-      .stat-item h3 {
-        font-size: 2rem;
-      }
-
-      .platform-selector {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .hero-buttons {
-        flex-direction: column;
-      }
-
-      .hero-buttons a {
-        width: 100%;
-      }
-    }
-  </style>
 </head>
 
 <body>
   <!-- Navigation -->
-  <nav class="navbar" role="navigation" aria-label="Main navigation">
-    <div class="nav-container">
-      <div class="logo">🚀 PostAI <span class="badge" id="subscriptionBadge">FREE</span></div>
+  <nav class="navbar">
+    <div class="container nav-content">
+      <a href="#" class="logo">
+        <i class="fas fa-rocket"></i> PostAI
+      </a>
+
       <div class="nav-links">
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
-        <a href="#about">About</a>
-        <a href="#account" class="btn-primary">Get Started</a>
+        <a href="#testimonials">Testimonials</a>
+        <a href="#account" class="btn btn-secondary">Sign In</a>
+        <button id="themeToggle" class="btn btn-secondary" style="padding: 0.5rem;">
+          <i class="fas fa-moon"></i>
+        </button>
       </div>
-      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-        🌙
-      </button>
-      <button class="hamburger" id="hamburger" aria-label="Toggle mobile menu" aria-expanded="false">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </div>
-
-    <!-- Mobile Navigation -->
-    <div class="mobile-nav" id="mobileNav">
-      <a href="#features">Features</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#about">About</a>
-      <a href="#" class="btn-primary" style="margin: 1rem 2rem; text-align: center;">Get Started</a>
     </div>
   </nav>
 
   <!-- Hero Section -->
   <section class="hero">
-    <div class="hero-content">
-      <h1>AI-Powered Social Media Automation</h1>
-      <p>Transform your content strategy with intelligent automation. Generate, schedule, and publish across all
-        platforms with one powerful platform.</p>
+    <div class="container">
+      <span class="badge badge-pro mb-4">New: AI Video Generation</span>
+      <h1>Supercharge Your Social Media with <span class="text-gradient">Artificial Intelligence</span></h1>
+      <p class="hero-subtitle">
+        Create, schedule, and optimize content for all your channels in seconds.
+        Join 10,000+ creators using PostAI to grow their audience.
+      </p>
+
       <div class="hero-buttons">
-        <a href="#generator" class="btn-primary">Start Creating</a>
-        <a href="#features" class="btn-secondary">Learn More</a>
+        <a href="#generator" class="btn btn-primary">
+          Start Creating Free <i class="fas fa-arrow-right"></i>
+        </a>
+        <a href="#demo" class="btn btn-secondary">
+          <i class="fas fa-play"></i> Watch Demo
+        </a>
+      </div>
+
+      <!-- Status Indicator -->
+      <div class="mt-4"
+        style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; padding: 0.5rem 1rem; border-radius: 2rem; box-shadow: var(--shadow-sm);">
+        <div id="statusDot" class="status-dot connecting"></div>
+        <span id="statusText" style="font-size: 0.875rem; font-weight: 500;">Connecting to server...</span>
       </div>
     </div>
   </section>
-
-  <!-- Status Card -->
-  <div class="status-section">
-    <div class="status-card">
-      <div class="status-indicator">
-        <div class="status-dot connecting" id="statusDot"></div>
-        <span id="statusText">Connecting to backend...</span>
-      </div>
-    </div>
-  </div>
 
   <!-- Stats Section -->
-  <section class="stats">
-    <div class="stats-grid">
-      <div class="stat-item">
-        <h3>10K+</h3>
-        <p>Posts Generated</p>
+  <section class="container">
+    <div class="features-grid" style="margin: 0; text-align: center;">
+      <div>
+        <h3>10M+</h3>
+        <p class="text-gray">Posts Generated</p>
       </div>
-      <div class="stat-item">
-        <h3>500+</h3>
-        <p>Active Users</p>
+      <div>
+        <h3>50k+</h3>
+        <p class="text-gray">Active Users</p>
       </div>
-      <div class="stat-item">
-        <h3>50+</h3>
-        <p>Platforms Supported</p>
-      </div>
-      <div class="stat-item">
+      <div>
         <h3>99.9%</h3>
-        <p>Uptime</p>
+        <p class="text-gray">Uptime SLA</p>
       </div>
     </div>
   </section>
 
-  <!-- Features Section -->
-  <section class="features" id="features">
-    <h2 class="section-title">Powerful Features for Modern Teams</h2>
-    <p class="section-subtitle">Everything you need to automate your social media presence</p>
-
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">🤖</div>
-        <h3>AI Content Generation</h3>
-        <p>Automatically create engaging social media posts with AI-generated text and images. Save hours of content
-          creation time.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">📱</div>
-        <h3>Multi-Platform Publishing</h3>
-        <p>Schedule and post content to Facebook, Twitter, Instagram, LinkedIn, and more from one unified dashboard.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>Content Automation</h3>
-        <p>Transform long-form content (blogs, videos) into shareable snippets automatically with intelligent bots.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">📅</div>
-        <h3>Smart Scheduling</h3>
-        <p>Queue posts for scheduled publishing across multiple channels. Batch operations for maximum efficiency.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">✨</div>
-        <h3>Content Enrichment</h3>
-        <p>Enhance existing content with AI improvements, optimization, and personalized recommendations.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">👥</div>
-        <h3>Team Collaboration</h3>
-        <p>Cloud-based access allows multiple team members to work together seamlessly on content campaigns.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Account / Login Section -->
-  <section class="features" id="account" style="background: white;">
+  <!-- Generator Section (Core App) -->
+  <section id="generator" style="padding: 4rem 0; background: linear-gradient(to bottom, var(--light), white);">
     <div class="container">
-      <h2 class="section-title">Your Account</h2>
-      <p class="section-subtitle">Sign in with your email to access Pro features and manage your subscription.</p>
-
-      <div class="generator-card" style="max-width: 600px; margin-top: 2rem;">
-        <form id="loginForm">
-          <div class="form-group">
-            <label for="loginEmail">Email address</label>
-            <input type="email" id="loginEmail" placeholder="you@example.com" required />
-          </div>
-          <button type="submit" class="btn-primary" style="width: 100%; padding: 0.9rem;">Sign in / Continue</button>
-        </form>
-        <div id="loginStatus" style="margin-top: 1rem; font-size: 0.95rem; color: var(--gray);"></div>
+      <div class="text-center mb-4">
+        <h2>Create Magic</h2>
+        <p class="text-gray">Generate engaging posts for any platform in seconds.</p>
       </div>
-    </div>
-  </section>
-
-  <!-- Pricing Section -->
-  <section class="features" id="pricing">
-    <div class="container">
-      <h2 class="section-title">Simple, Transparent Pricing</h2>
-      <p class="section-subtitle">Start for free, upgrade when you need more power.</p>
-
-      <div class="features-grid">
-        <div class="feature-card" id="freePlanCard">
-          <h3>Free</h3>
-          <p>Basic AI generation with limited usage. Perfect for testing and small projects.</p>
-          <ul style="margin: 1rem 0 1.5rem 1.25rem; color: var(--gray); font-size: 0.95rem;">
-            <li>Up to 20 generations / month</li>
-            <li>Single user workspace</li>
-            <li>Access to core templates</li>
-          </ul>
-          <button id="freePlanButton" class="btn-secondary" disabled>Current Plan</button>
-        </div>
-
-        <div class="feature-card" id="proPlanCard">
-          <h3>Pro</h3>
-          <p>Higher limits, priority generation, and scheduling tools for growing teams.</p>
-          <ul style="margin: 1rem 0 1.5rem 1.25rem; color: var(--gray); font-size: 0.95rem;">
-            <li>Up to 500 generations / month</li>
-            <li>Advanced scheduling</li>
-            <li>Priority processing</li>
-          </ul>
-          <button id="proPlanButton" class="btn-primary" type="button">Upgrade to Pro</button>
-        </div>
-
-        <div class="feature-card" id="premiumPlanCard">
-          <h3>Premium</h3>
-          <p>Unlimited requests, best performance, and premium support for serious operators.</p>
-          <ul style="margin: 1rem 0 1.5rem 1.25rem; color: var(--gray); font-size: 0.95rem;">
-            <li>Unlimited generations</li>
-            <li>Highest priority queue</li>
-            <li>Dedicated support</li>
-          </ul>
-          <button id="premiumPlanButton" class="btn-primary" type="button">Upgrade to Premium</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Content Generator -->
-  <section class="generator-section" id="generator">
-    <div class="container">
-      <h2 class="section-title">Create Your Content</h2>
-      <p class="section-subtitle">Generate AI-powered social media posts in seconds</p>
 
       <div class="generator-card">
         <form id="contentForm">
           <div class="form-group">
-            <label for="contentType">Content Type</label>
-            <select id="contentType" required aria-label="Select content type">
-              <option value="">Select type...</option>
+            <label class="form-label">Content Type</label>
+            <select id="contentType" class="form-control" required>
               <option value="post">Social Media Post</option>
-              <option value="blog">Blog Snippet</option>
-              <option value="video">Video Description</option>
-              <option value="ad">Advertisement Copy</option>
+              <option value="thread">Twitter Thread</option>
+              <option value="caption">Instagram Caption</option>
+              <option value="article">LinkedIn Article</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="prompt">What would you like to create?</label>
-            <textarea id="prompt" placeholder="Example: Create a Twitter post about the benefits of AI in marketing..."
-              required aria-label="Enter your content prompt" maxlength="1000"></textarea>
-            <div class="char-count"><span id="charCount">0</span>/1000</div>
+            <label class="form-label">What do you want to post about?</label>
+            <textarea id="prompt" class="form-control" rows="4"
+              placeholder="e.g., A thread about the future of AI in marketing..." required></textarea>
           </div>
 
           <div class="form-group">
-            <label>Select Platforms</label>
-            <div class="platform-selector" role="group" aria-label="Social media platforms">
-              <label class="platform-checkbox">
-                <input type="checkbox" name="platform" value="twitter" aria-label="Twitter">
-                <span>🐦 Twitter</span>
+            <label class="form-label">Select Platforms</label>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
+              <label class="btn btn-secondary" style="border-radius: 2rem; padding: 0.5rem 1rem;">
+                <input type="checkbox" name="platform" value="twitter" style="margin-right: 0.5rem;"> <i
+                  class="fab fa-twitter"></i> Twitter
               </label>
-              <label class="platform-checkbox">
-                <input type="checkbox" name="platform" value="facebook" aria-label="Facebook">
-                <span>📘 Facebook</span>
+              <label class="btn btn-secondary" style="border-radius: 2rem; padding: 0.5rem 1rem;">
+                <input type="checkbox" name="platform" value="linkedin" style="margin-right: 0.5rem;"> <i
+                  class="fab fa-linkedin"></i> LinkedIn
               </label>
-              <label class="platform-checkbox">
-                <input type="checkbox" name="platform" value="instagram" aria-label="Instagram">
-                <span>📷 Instagram</span>
-              </label>
-              <label class="platform-checkbox">
-                <input type="checkbox" name="platform" value="linkedin" aria-label="LinkedIn">
-                <span>💼 LinkedIn</span>
+              <label class="btn btn-secondary" style="border-radius: 2rem; padding: 0.5rem 1rem;">
+                <input type="checkbox" name="platform" value="instagram" style="margin-right: 0.5rem;"> <i
+                  class="fab fa-instagram"></i> Instagram
               </label>
             </div>
           </div>
 
           <div class="form-group">
-            <label>
-              <input type="checkbox" id="schedulePost" aria-label="Schedule post for later">
-              Schedule for later
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+              <input type="checkbox" id="schedulePost"> Schedule for later
             </label>
-            <input type="datetime-local" id="scheduleTime" style="margin-top: 0.5rem; display: none;"
-              aria-label="Select schedule time">
+            <input type="datetime-local" id="scheduleTime" class="form-control mt-4" style="display: none;">
           </div>
 
-          <button type="submit" class="btn-primary" id="submitBtn" style="width: 100%; padding: 1rem; cursor: pointer;">
-            <span id="btnText">Generate & Publish</span>
-            <span id="btnSpinner" class="loading" style="display: none;"></span>
+          <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%;">
+            <span id="btnSpinner" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+            <span id="btnText">Generate Content</span>
           </button>
         </form>
 
-        <div class="result-box" id="resultBox" role="region" aria-label="Generated content result">
-          <h3 style="margin-bottom: 1rem;">Generated Content:</h3>
-          <pre id="resultContent"></pre>
+        <div id="resultBox" class="mt-4"
+          style="display: none; background: var(--light); padding: 1.5rem; border-radius: 0.5rem;">
+          <h4>Generated Result:</h4>
+          <pre id="resultContent" style="white-space: pre-wrap; font-family: inherit; color: var(--dark);"></pre>
         </div>
-
-        <div id="messageContainer" role="alert" aria-live="polite"></div>
       </div>
     </div>
   </section>
 
-  <!-- Dashboard Preview -->
-  <section class="features" style="background: white;">
+  <!-- Features Section -->
+  <section id="features" class="container">
+    <div class="text-center">
+      <span class="badge badge-free">Features</span>
+      <h2>Everything you need to scale</h2>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-robot"></i></div>
+        <h3>AI Writer</h3>
+        <p class="text-gray">Advanced language models trained on high-converting social media posts.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-calendar-alt"></i></div>
+        <h3>Smart Scheduling</h3>
+        <p class="text-gray">Auto-schedule posts for when your audience is most active.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+        <h3>Analytics</h3>
+        <p class="text-gray">Track engagement and growth across all your channels in one dashboard.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-images"></i></div>
+        <h3>Image Gen</h3>
+        <p class="text-gray">Create stunning visuals to accompany your posts automatically.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-users"></i></div>
+        <h3>Collaboration</h3>
+        <p class="text-gray">Invite team members and manage approval workflows seamlessly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-magic"></i></div>
+        <h3>Repurposing</h3>
+        <p class="text-gray">Turn one blog post into a week's worth of social content instantly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing" style="background: var(--light); padding: 6rem 0;">
     <div class="container">
-      <h2 class="section-title">Your Content Dashboard</h2>
-      <p class="section-subtitle">Manage all your social media content in one place</p>
+      <div class="text-center">
+        <h2>Simple, Transparent Pricing</h2>
+        <p class="text-gray">Start for free, upgrade as you grow.</p>
+      </div>
 
-      <div class="dashboard">
-        <div class="dashboard-card">
-          <div class="card-icon">📊</div>
-          <h3>Analytics</h3>
-          <p>Track performance metrics, engagement rates, and audience growth across all platforms.</p>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3>Starter</h3>
+          <div class="price">$0<span>/mo</span></div>
+          <ul class="features-list">
+            <li><i class="fas fa-check text-gradient"></i> 10 AI Generations</li>
+            <li><i class="fas fa-check text-gradient"></i> 1 User</li>
+            <li><i class="fas fa-check text-gradient"></i> Basic Analytics</li>
+          </ul>
+          <button class="btn btn-secondary" style="width: 100%;">Get Started</button>
         </div>
 
-        <div class="dashboard-card">
-          <div class="card-icon">📝</div>
-          <h3>Content Library</h3>
-          <p>Store and organize all your generated content. Easy search and reuse for future campaigns.</p>
+        <div class="pricing-card popular">
+          <div class="badge badge-pro" style="position: absolute; top: -1rem; left: 50%; transform: translateX(-50%);">
+            Most Popular</div>
+          <h3>Pro</h3>
+          <div class="price">$29<span>/mo</span></div>
+          <ul class="features-list">
+            <li><i class="fas fa-check text-gradient"></i> Unlimited Generations</li>
+            <li><i class="fas fa-check text-gradient"></i> 5 Users</li>
+            <li><i class="fas fa-check text-gradient"></i> Advanced Analytics</li>
+            <li><i class="fas fa-check text-gradient"></i> Priority Support</li>
+          </ul>
+          <button class="btn btn-primary" style="width: 100%;">Start Pro Trial</button>
         </div>
 
-        <div class="dashboard-card">
-          <div class="card-icon">🔄</div>
-          <h3>Automation Rules</h3>
-          <p>Set up intelligent automation rules to transform and repurpose content automatically.</p>
-        </div>
-
-        <div class="dashboard-card">
-          <div class="card-icon">👥</div>
-          <h3>Team Workspace</h3>
-          <p>Collaborate with your team. Assign roles, review content, and manage approvals.</p>
-        </div>
-
-        <div class="dashboard-card">
-          <div class="card-icon">🎨</div>
-          <h3>Brand Templates</h3>
-          <p>Create and save brand-specific templates for consistent messaging across all content.</p>
-        </div>
-
-        <div class="dashboard-card">
-          <div class="card-icon">⚙️</div>
-          <h3>API Access</h3>
-          <p>Integrate PostAI with your existing tools via our powerful REST API.</p>
+        <div class="pricing-card">
+          <h3>Business</h3>
+          <div class="price">$99<span>/mo</span></div>
+          <ul class="features-list">
+            <li><i class="fas fa-check text-gradient"></i> Everything in Pro</li>
+            <li><i class="fas fa-check text-gradient"></i> Unlimited Users</li>
+            <li><i class="fas fa-check text-gradient"></i> API Access</li>
+            <li><i class="fas fa-check text-gradient"></i> Dedicated Manager</li>
+          </ul>
+          <button class="btn btn-secondary" style="width: 100%;">Contact Sales</button>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Account Section (Hidden by default, managed by JS) -->
+  <section id="account" class="container" style="padding: 4rem 0;">
+    <div class="generator-card" style="max-width: 500px;">
+      <div class="text-center mb-4">
+        <h3>Sign In</h3>
+        <p class="text-gray">Access your dashboard</p>
+      </div>
+      <form id="loginForm">
+        <div class="form-group">
+          <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Continue with Email</button>
+      </form>
     </div>
   </section>
 
   <!-- Footer -->
   <footer class="footer">
-    <div class="footer-content">
-      <h3 style="margin-bottom: 1rem;">🚀 PostAI</h3>
-      <p>AI-Powered Social Media Automation Platform</p>
-      <p style="margin-top: 2rem; opacity: 0.8;">&copy; 2024 PostAI. All rights reserved.</p>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="#" class="logo" style="color: white; margin-bottom: 1rem; display: inline-block;">
+            <i class="fas fa-rocket"></i> PostAI
+          </a>
+          <p style="color: var(--gray-light);">
+            Empowering creators and businesses with intelligent social media automation tools.
+          </p>
+        </div>
+
+        <div class="footer-links">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#">Features</a></li>
+            <li><a href="#">Pricing</a></li>
+            <li><a href="#">API</a></li>
+            <li><a href="#">Integrations</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms</a></li>
+            <li><a href="#">Security</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="text-center"
+        style="border-top: 1px solid var(--dark-tertiary); padding-top: 2rem; color: var(--gray-light);">
+        <p>&copy; 2024 PostAI. All rights reserved.</p>
+      </div>
     </div>
   </footer>
 
-  <script>
-    const BACKEND_URL = window.BACKEND_URL || 'https://postai-backend-q8u9.onrender.com/api';
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
-    const contentForm = document.getElementById('contentForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const btnText = document.getElementById('btnText');
-    const btnSpinner = document.getElementById('btnSpinner');
-    const resultBox = document.getElementById('resultBox');
-    const resultContent = document.getElementById('resultContent');
-    const messageContainer = document.getElementById('messageContainer');
-    const scheduleCheckbox = document.getElementById('schedulePost');
-    const scheduleTime = document.getElementById('scheduleTime');
-
-    const subscriptionBadge = document.getElementById('subscriptionBadge');
-    const loginForm = document.getElementById('loginForm');
-    const loginEmailInput = document.getElementById('loginEmail');
-    const loginStatus = document.getElementById('loginStatus');
-    const freePlanButton = document.getElementById('freePlanButton');
-    const proPlanButton = document.getElementById('proPlanButton');
-    const premiumPlanButton = document.getElementById('premiumPlanButton');
-
-    let authToken = localStorage.getItem('postai_token') || null;
-    let currentUser = null;
-
-    function setAuth(token, user) {
-      authToken = token;
-      currentUser = user;
-      if (token) {
-        localStorage.setItem('postai_token', token);
-      } else {
-        localStorage.removeItem('postai_token');
-      }
-      if (user) {
-        localStorage.setItem('postai_user', JSON.stringify(user));
-      } else {
-        localStorage.removeItem('postai_user');
-      }
-      updateSubscriptionUI();
-    }
-
-    function loadUserFromStorage() {
-      const storedUser = localStorage.getItem('postai_user');
-      if (storedUser) {
-        try {
-          currentUser = JSON.parse(storedUser);
-        } catch (e) {
-          currentUser = null;
-        }
-      }
-      updateSubscriptionUI();
-    }
-
-    function updateSubscriptionUI() {
-      if (!subscriptionBadge) return;
-      subscriptionBadge.classList.remove('pro', 'premium');
-
-      const plan = currentUser?.subscriptionPlan || 'free';
-      if (plan === 'pro') {
-        subscriptionBadge.textContent = 'PRO';
-        subscriptionBadge.classList.add('pro');
-      } else if (plan === 'premium') {
-        subscriptionBadge.textContent = 'PREMIUM';
-        subscriptionBadge.classList.add('premium');
-      } else {
-        subscriptionBadge.textContent = 'FREE';
-      }
-
-      if (freePlanButton) {
-        freePlanButton.disabled = plan === 'free';
-        freePlanButton.textContent = plan === 'free' ? 'Current Plan' : 'Switch to Free';
-      }
-      if (proPlanButton) {
-        proPlanButton.disabled = plan === 'pro';
-        proPlanButton.textContent = plan === 'pro' ? 'Current Plan' : 'Upgrade to Pro';
-      }
-      if (premiumPlanButton) {
-        premiumPlanButton.disabled = plan === 'premium';
-        premiumPlanButton.textContent = plan === 'premium' ? 'Current Plan' : 'Upgrade to Premium';
-      }
-    }
-
-    async function fetchCurrentUser() {
-      if (!authToken) {
-        loadUserFromStorage();
-        return;
-      }
-      try {
-        const response = await fetch(BACKEND_URL + '/auth/me', {
-          headers: {
-            'Authorization': 'Bearer ' + authToken
-          }
-        });
-        if (!response.ok) {
-          if (response.status === 401) {
-            setAuth(null, null);
-          }
-          return;
-        }
-        const data = await response.json();
-        setAuth(authToken, data.user);
-        if (loginStatus && data.user) {
-          loginStatus.textContent = `Signed in as ${data.user.email}`;
-        }
-      } catch (error) {
-        console.error('Failed to fetch current user', error);
-      }
-    }
-
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = loginEmailInput.value.trim();
-        if (!email) return;
-        loginStatus.textContent = 'Signing in...';
-        try {
-          const response = await fetch(BACKEND_URL + '/auth/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email })
-          });
-          if (!response.ok) {
-            throw new Error('Login failed');
-          }
-          const data = await response.json();
-          setAuth(data.token, data.user);
-          loginStatus.textContent = `Signed in as ${data.user.email}`;
-        } catch (error) {
-          loginStatus.textContent = 'Unable to sign in. Please try again.';
-        }
-      });
-    }
-
-    async function createCheckout(variantId) {
-      if (!authToken) {
-        alert('Please sign in first to upgrade your plan.');
-        return;
-      }
-      try {
-        const response = await fetch(BACKEND_URL + '/payments/create-checkout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + authToken
-          },
-          body: JSON.stringify({ variantId })
-        });
-        if (!response.ok) {
-          throw new Error('Unable to start checkout');
-        }
-        const data = await response.json();
-        window.location.href = data.url;
-      } catch (error) {
-        alert('Failed to start checkout. Please try again.');
-      }
-    }
-
-    if (proPlanButton) {
-      proPlanButton.addEventListener('click', () => {
-        createCheckout(window.LEMONSQUEEZY_PRO_VARIANT_ID);
-      });
-    }
-
-    if (premiumPlanButton) {
-      premiumPlanButton.addEventListener('click', () => {
-        createCheckout(window.LEMONSQUEEZY_PREMIUM_VARIANT_ID);
-      });
-    }
-
-    loadUserFromStorage();
-    fetchCurrentUser();
-
-    const themeToggle = document.getElementById('themeToggle');
-    const hamburger = document.getElementById('hamburger');
-    const mobileNav = document.getElementById('mobileNav');
-    const promptTextarea = document.getElementById('prompt');
-    const charCount = document.getElementById('charCount');
-
-    // Theme Toggle
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') {
-      document.body.classList.add('dark-mode');
-      themeToggle.textContent = '☀️';
-    }
-
-    themeToggle.addEventListener('click', () => {
-      document.body.classList.toggle('dark-mode');
-      const isDark = document.body.classList.contains('dark-mode');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      themeToggle.textContent = isDark ? '☀️' : '🌙';
-    });
-
-    // Hamburger Menu
-    hamburger.addEventListener('click', () => {
-      hamburger.classList.toggle('active');
-      mobileNav.classList.toggle('active');
-      hamburger.setAttribute('aria-expanded', hamburger.classList.contains('active'));
-    });
-
-    // Close mobile menu when clicking links
-    document.querySelectorAll('.mobile-nav a').forEach(link => {
-      link.addEventListener('click', () => {
-        hamburger.classList.remove('active');
-        mobileNav.classList.remove('active');
-        hamburger.setAttribute('aria-expanded', 'false');
-      });
-    });
-
-    // Character counter
-    promptTextarea.addEventListener('input', () => {
-      charCount.textContent = promptTextarea.value.length;
-    });
-
-
-    // Platform checkbox styling
-    document.querySelectorAll('.platform-checkbox input').forEach(checkbox => {
-      checkbox.addEventListener('change', function () {
-        this.closest('.platform-checkbox').classList.toggle('checked', this.checked);
-      });
-    });
-
-    // Schedule toggle
-    scheduleCheckbox.addEventListener('change', function () {
-      scheduleTime.style.display = this.checked ? 'block' : 'none';
-    });
-
-    // Scroll animations
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -100px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.animation = `fadeInUp 0.6s ease-out forwards`;
-          observer.unobserve(entry.target);
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('.feature-card, .dashboard-card, .stat-item').forEach(el => {
-      observer.observe(el);
-    });
-
-    // Check backend connection
-    async function checkBackend() {
-      try {
-        const response = await fetch(BACKEND_URL, {
-          signal: AbortSignal.timeout(10000)
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const data = await response.json();
-        statusDot.className = 'status-dot connected';
-        statusText.textContent = '✅ Backend Connected - Ready to Generate';
-        return true;
-      } catch (error) {
-        statusDot.className = 'status-dot error';
-        statusText.textContent = '⚠️ Backend Connection Issue - Some features may be limited';
-        return false;
-      }
-    }
-
-    // Handle form submission
-    contentForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const contentType = document.getElementById('contentType').value;
-      const prompt = document.getElementById('prompt').value.trim();
-      const platforms = Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value);
-      const schedule = scheduleCheckbox.checked;
-      const scheduledTime = schedule ? scheduleTime.value : null;
-
-      if (!prompt) {
-        showMessage('Please enter a prompt', 'error');
-        return;
-      }
-
-      if (platforms.length === 0) {
-        showMessage('Please select at least one platform', 'error');
-        return;
-      }
-
-      if (!authToken) {
-        showMessage('Please sign in from the Account section before generating content.', 'error');
-        return;
-      }
-
-      // Show loading state
-      submitBtn.disabled = true;
-      btnText.textContent = 'Generating Content...';
-      btnSpinner.style.display = 'inline-block';
-      resultBox.classList.remove('show');
-      messageContainer.innerHTML = '';
-
-      try {
-        const response = await fetch(BACKEND_URL + '/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + authToken
-          },
-          body: JSON.stringify({
-            contentType,
-            prompt,
-            platforms,
-            schedule,
-            scheduledTime
-          }),
-          signal: AbortSignal.timeout(30000)
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error('Authentication required. Please sign in from the Account section.');
-          }
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        // Show result
-        resultBox.classList.add('show');
-        resultContent.textContent = JSON.stringify(data, null, 2);
-
-        showMessage('Content generated successfully! Ready to publish.', 'success');
-
-      } catch (error) {
-        let errorMsg = 'Failed to generate content. ';
-
-        if (error.name === 'AbortError') {
-          errorMsg += 'Request timed out. The backend may be processing.';
-        } else if (error.message.includes('Failed to fetch')) {
-          errorMsg += 'Cannot reach the backend server. Please try again.';
-        } else {
-          errorMsg += error.message;
-        }
-
-        showMessage(errorMsg, 'error');
-        console.error('Generation error:', error);
-      } finally {
-        submitBtn.disabled = false;
-        btnText.textContent = 'Generate & Publish';
-        btnSpinner.style.display = 'none';
-      }
-    });
-
-    function showMessage(message, type) {
-      messageContainer.innerHTML = `
-        <div class="message ${type}" role="alert">
-          ${message}
-        </div>
-      `;
-
-      setTimeout(() => {
-        messageContainer.innerHTML = '';
-      }, 5000);
-    }
-
-    // Smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
-    });
-
-    // Initialize
-    checkBackend();
-  </script>
+  <script src="script.js"></script>
 </body>
 
 </html>
