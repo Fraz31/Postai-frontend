@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Social Monkey</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <script src="config.js"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                🐵 Social Monkey
+            </a>
+
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="dashboard.html" class="active">Dashboard</a>
+                <a href="#" id="logoutBtn" class="btn btn-secondary">Sign Out</a>
+                <button id="themeToggle" class="btn btn-secondary" style="padding: 0.5rem;">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Container -->
+    <div class="container" style="padding: 3rem 2rem;">
+        <!-- Welcome Section -->
+        <div style="margin-bottom: 3rem;">
+            <h1>Welcome back! 👋</h1>
+            <p class="text-gray">Here's what's happening with your content today.</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="features-grid" style="margin-bottom: 3rem;">
+            <div class="feature-card" style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">📝</div>
+                <h2 id="totalPosts">0</h2>
+                <p class="text-gray">Total Posts Generated</p>
+            </div>
+            <div class="feature-card" style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">📈</div>
+                <h2 id="totalEngagement">0</h2>
+                <p class="text-gray">Total Engagement</p>
+            </div>
+            <div class="feature-card" style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎯</div>
+                <h2 id="platformsUsed">0</h2>
+                <p class="text-gray">Platforms Connected</p>
+            </div>
+        </div>
+
+        <!-- Analytics Charts -->
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+            <div class="feature-card">
+                <h3>Content Performance</h3>
+                <canvas id="performanceChart"></canvas>
+            </div>
+            <div class="feature-card">
+                <h3>Platform Distribution</h3>
+                <canvas id="platformChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Content Library -->
+        <div class="generator-card" style="max-width: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>Content Library</h2>
+                <button class="btn btn-primary" onclick="window.location.href='index.html#generator'">
+                    <i class="fas fa-plus"></i> Create New
+                </button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="form-group">
+                <input type="text" id="searchContent" class="form-control" placeholder="Search your content...">
+            </div>
+
+            <!-- Content List -->
+            <div id="contentList" style="margin-top: 2rem;">
+                <!-- Content items will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Notifications Center -->
+        <div class="generator-card" style="max-width: none; margin-top: 3rem;">
+            <h2>Notifications</h2>
+            <div id="notificationsList" style="margin-top: 2rem;">
+                <!-- Notifications will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Dashboard-specific logic
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is logged in
+            const token = localStorage.getItem('socialmonkey_token');
+            if (!token) {
+                window.location.href = 'index.html#account';
+                return;
+            }
+
+            // Load dashboard data
+            loadDashboardData();
+            loadContentLibrary();
+            loadNotifications();
+            createCharts();
+
+            // Logout button
+            document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (window.logout) window.logout();
+                window.location.href = 'index.html';
+            });
+
+            // Search functionality
+            document.getElementById('searchContent')?.addEventListener('input', (e) => {
+                filterContent(e.target.value);
+            });
+        });
+
+        function loadDashboardData() {
+            // Get content from localStorage
+            const content = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
+
+            // Update stats
+            document.getElementById('totalPosts').textContent = content.length;
+            document.getElementById('totalEngagement').textContent = content.reduce((sum, item) => sum + (item.engagement || 0), 0).toLocaleString();
+
+            // Count unique platforms
+            const platforms = new Set(content.flatMap(item => item.platforms || []));
+            document.getElementById('platformsUsed').textContent = platforms.size;
+        }
+
+        function createCharts() {
+            // Performance Chart
+            const perfCtx = document.getElementById('performanceChart');
+            if (perfCtx) {
+                new Chart(perfCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Posts Created',
+                            data: [3, 5, 2, 8, 4, 6, 7],
+                            borderColor: '#8B5CF6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            // Platform Chart
+            const platCtx = document.getElementById('platformChart');
+            if (platCtx) {
+                new Chart(platCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Twitter', 'LinkedIn', 'Instagram', 'Facebook'],
+                        datasets: [{
+                            data: [40, 25, 20, 15],
+                            backgroundColor: ['#1DA1F2', '#0A66C2', '#E4405F', '#1877F2']
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+            }
+        }
+
+        function loadContentLibrary() {
+            const content = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
+            const listEl = document.getElementById('contentList');
+
+            if (!listEl) return;
+
+            if (content.length === 0) {
+                listEl.innerHTML = '<p class="text-gray" style="text-align: center; padding: 2rem;">No content yet. Create your first post!</p>';
+                return;
+            }
+
+            listEl.innerHTML = content.map((item, index) => `
+                <div class="feature-card" style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <h4>${item.contentType || 'Post'}</h4>
+                            <p class="text-gray">${item.prompt}</p>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                ${(item.platforms || []).map(p => `<span class="badge badge-pro">${p}</span>`).join('')}
+                            </div>
+                            <small class="text-gray" style="display: block; margin-top: 0.5rem;">${new Date(item.created || Date.now()).toLocaleDateString()}</small>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-secondary" onclick="copyContent(${index})" title="Copy">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="btn btn-secondary" onclick="deleteContent(${index})" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadNotifications() {
+            const notifications = [
+                { type: 'success', message: 'Welcome to Social Monkey! 🐵', time: 'Just now' },
+                { type: 'info', message: 'Your content is performing well this week', time: '2 hours ago' },
+                { type: 'info', message: 'New feature: Analytics dashboard is now available', time: '1 day ago' }
+            ];
+
+            const listEl = document.getElementById('notificationsList');
+            if (!listEl) return;
+
+            listEl.innerHTML = notifications.map(n => `
+                <div class="feature-card" style="margin-bottom: 1rem; border-left: 4px solid var(--primary);">
+                    <div style="display: flex; justify-content: space-between;">
+                        <p>${n.message}</p>
+                        <small class="text-gray">${n.time}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function copyContent(index) {
+            const content = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
+            const item = content[index];
+            navigator.clipboard.writeText(item.result || item.prompt);
+            alert('Content copied to clipboard!');
+        }
+
+        function deleteContent(index) {
+            if (!confirm('Delete this content?')) return;
+
+            const content = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
+            content.splice(index, 1);
+            localStorage.setItem('socialmonkey_content', JSON.stringify(content));
+
+            loadDashboardData();
+            loadContentLibrary();
+        }
+
+        function filterContent(query) {
+            const content = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
+            const filtered = content.filter(item =>
+                item.prompt.toLowerCase().includes(query.toLowerCase()) ||
+                item.contentType.toLowerCase().includes(query.toLowerCase())
+            );
+
+            const listEl = document.getElementById('contentList');
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<p class="text-gray" style="text-align: center; padding: 2rem;">No matching content found.</p>';
+            } else {
+                // Re-render with filtered content
+                loadContentLibrary();
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -126,16 +126,9 @@ function updatePricingButtons(plan) {
     });
 }
 
-// Content Generation
+// Content Generation (with Demo Mode)
 async function generateContent(e) {
     e.preventDefault();
-
-    if (!state.token) {
-        showToast('Please sign in to generate content', 'error');
-        // Scroll to account section
-        document.getElementById('account')?.scrollIntoView({ behavior: 'smooth' });
-        return;
-    }
 
     const form = e.target;
     const contentType = document.getElementById('contentType')?.value;
@@ -149,6 +142,38 @@ async function generateContent(e) {
         return;
     }
 
+    // Demo Mode Logic
+    if (!state.token) {
+        const demoCount = parseInt(localStorage.getItem('socialmonkey_demo_count') || '0');
+
+        if (demoCount >= 3) {
+            showToast('Demo limit reached! Sign up to continue creating content.', 'info');
+            document.getElementById('account')?.scrollIntoView({ behavior: 'smooth' });
+            return;
+        }
+
+        // Mock demo generation
+        setLoading(true);
+        setTimeout(() => {
+            const mockResult = {
+                content: `🐵 Here's a demo ${contentType} for ${platforms.join(', ')}:\n\n${prompt}\n\n✨ This is generated content that would appear based on your prompt!\n\n${platforms.map(p => `#${p}`).join(' ')}`,
+                platforms: platforms,
+                demo: true
+            };
+
+            display Result(mockResult);
+            saveToContentLibrary({ contentType, prompt, platforms, result: mockResult.content, created: new Date().toISOString() });
+
+            localStorage.setItem('socialmonkey_demo_count', (demoCount + 1).toString());
+            showToast(`Demo ${demoCount + 1}/3 used. ${3 - demoCount - 1} demos remaining!`, 'info');
+
+            setLoading(false);
+            form.reset();
+        }, 2000);
+        return;
+    }
+
+    // Regular generation for logged-in users
     setLoading(true);
 
     try {
@@ -177,6 +202,7 @@ async function generateContent(e) {
 
         const result = await res.json();
         displayResult(result);
+        saveToContentLibrary({ contentType, prompt, platforms, result: JSON.stringify(result), created: new Date().toISOString() });
         showToast('Content generated successfully! 🎉', 'success');
 
         // Clear form
@@ -195,9 +221,15 @@ function displayResult(data) {
 
     if (resultBox && resultContent) {
         resultBox.style.display = 'block';
-        resultContent.textContent = JSON.stringify(data, null, 2);
+        resultContent.textContent = data.content || JSON.stringify(data, null, 2);
         resultBox.scrollIntoView({ behavior: 'smooth' });
     }
+}
+
+function saveToContentLibrary(content) {
+    const library = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
+    library.unshift(content); // Add to beginning
+    localStorage.setItem('socialmonkey_content', JSON.stringify(library.slice(0, 50))); // Keep last 50
 }
 
 // Payments
