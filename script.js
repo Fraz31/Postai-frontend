@@ -1,6 +1,6 @@
 /**
- * PostAI Frontend Logic
- * Handles UI interactions, API calls, and State Management
+ * Social Monkey Frontend Logic
+ * Complete MVP with all features working
  */
 
 // Configuration
@@ -13,27 +13,13 @@ const CONFIG = {
 // State
 const state = {
     user: null,
-    token: localStorage.getItem('postai_token'),
+    token: localStorage.getItem('socialmonkey_token'),
     theme: localStorage.getItem('theme') || 'light'
 };
 
-// DOM Elements
-const elements = {
-    themeToggle: document.getElementById('themeToggle'),
-    loginForm: document.getElementById('loginForm'),
-    contentForm: document.getElementById('contentForm'),
-    subscriptionBadge: document.getElementById('subscriptionBadge'),
-    statusDot: document.getElementById('statusDot'),
-    statusText: document.getElementById('statusText'),
-    resultBox: document.getElementById('resultBox'),
-    resultContent: document.getElementById('resultContent'),
-    submitBtn: document.getElementById('submitBtn'),
-    btnText: document.getElementById('btnText'),
-    btnSpinner: document.getElementById('btnSpinner')
-};
-
-// Initialization
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🐵 Social Monkey initialized!');
     initTheme();
     loadUser();
     checkBackendStatus();
@@ -44,7 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function initTheme() {
     if (state.theme === 'dark') {
         document.body.classList.add('dark-mode');
-        elements.themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        const toggle = document.getElementById('themeToggle');
+        if (toggle) toggle.innerHTML = '<i class="fas fa-sun"></i>';
     }
 }
 
@@ -52,12 +39,15 @@ function toggleTheme() {
     state.theme = state.theme === 'light' ? 'dark' : 'light';
     document.body.classList.toggle('dark-mode');
     localStorage.setItem('theme', state.theme);
-    elements.themeToggle.innerHTML = state.theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    const toggle = document.getElementById('themeToggle');
+    if (toggle) {
+        toggle.innerHTML = state.theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    }
 }
 
 // Auth & User Management
 async function loadUser() {
-    if (!state.token) return updateUI(null);
+    if (!state.token) return;
 
     try {
         const res = await fetch(`${CONFIG.BACKEND_URL}/auth/me`, {
@@ -77,6 +67,9 @@ async function loadUser() {
 }
 
 async function login(email) {
+    const statusEl = document.getElementById('loginStatus');
+    if (statusEl) statusEl.textContent = 'Signing in...';
+
     try {
         const res = await fetch(`${CONFIG.BACKEND_URL}/auth/login`, {
             method: 'POST',
@@ -89,56 +82,72 @@ async function login(email) {
         const data = await res.json();
         state.token = data.token;
         state.user = data.user;
-        localStorage.setItem('postai_token', state.token);
+        localStorage.setItem('socialmonkey_token', state.token);
 
         updateUI(state.user);
-        showToast('Successfully logged in!', 'success');
+        showToast('Welcome to Social Monkey! 🐵', 'success');
+
+        if (statusEl) statusEl.textContent = `Signed in as ${data.user.email}`;
     } catch (error) {
-        showToast(error.message, 'error');
+        showToast('Unable to sign in. Please try again.', 'error');
+        if (statusEl) statusEl.textContent = 'Sign in failed';
     }
 }
 
 function logout() {
     state.token = null;
     state.user = null;
-    localStorage.removeItem('postai_token');
+    localStorage.removeItem('socialmonkey_token');
     updateUI(null);
+    showToast('Signed out successfully', 'info');
 }
 
 function updateUI(user) {
     // Update Subscription Badge
-    if (elements.subscriptionBadge) {
+    const badge = document.getElementById('subscriptionBadge');
+    if (badge) {
         const plan = user?.subscriptionPlan || 'free';
-        elements.subscriptionBadge.className = `badge badge-${plan}`;
-        elements.subscriptionBadge.textContent = plan.toUpperCase();
+        badge.className = `badge badge-${plan}`;
+        badge.textContent = plan.toUpperCase();
     }
 
-    // Update Login Form visibility
-    if (elements.loginForm) {
-        const container = elements.loginForm.closest('.generator-card');
-        if (user) {
-            container.innerHTML = `
-                <div class="text-center">
-                    <h3>Welcome back, ${user.email}</h3>
-                    <p class="text-gray">Current Plan: <span class="badge badge-${user.subscriptionPlan}">${user.subscriptionPlan.toUpperCase()}</span></p>
-                    <button onclick="logout()" class="btn btn-secondary">Sign Out</button>
-                </div>
-            `;
+    // Update Pricing Buttons
+    updatePricingButtons(user?.subscriptionPlan || 'free');
+}
+
+function updatePricingButtons(plan) {
+    const plans = ['free', 'pro', 'premium'];
+    plans.forEach(p => {
+        const btn = document.getElementById(`${p}PlanButton`);
+        if (btn) {
+            btn.disabled = plan === p;
+            btn.textContent = plan === p ? 'Current Plan' : `Upgrade to ${p.charAt(0).toUpperCase() + p.slice(1)}`;
         }
-    }
+    });
 }
 
 // Content Generation
 async function generateContent(e) {
     e.preventDefault();
-    if (!state.token) return showToast('Please sign in to generate content', 'error');
 
-    const formData = new FormData(elements.contentForm);
-    const data = Object.fromEntries(formData.entries());
+    if (!state.token) {
+        showToast('Please sign in to generate content', 'error');
+        // Scroll to account section
+        document.getElementById('account')?.scrollIntoView({ behavior: 'smooth' });
+        return;
+    }
 
-    // Get platforms as array
+    const form = e.target;
+    const contentType = document.getElementById('contentType')?.value;
+    const prompt = document.getElementById('prompt')?.value;
     const platforms = Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value);
-    if (platforms.length === 0) return showToast('Select at least one platform', 'error');
+    const schedule = document.getElementById('schedulePost')?.checked;
+    const scheduledTime = document.getElementById('scheduleTime')?.value;
+
+    if (!prompt || platforms.length === 0) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
 
     setLoading(true);
 
@@ -150,80 +159,188 @@ async function generateContent(e) {
                 'Authorization': `Bearer ${state.token}`
             },
             body: JSON.stringify({
-                ...data,
+                contentType,
+                prompt,
                 platforms,
-                schedule: document.getElementById('schedulePost').checked,
-                scheduledTime: document.getElementById('scheduleTime').value
-            })
+                schedule,
+                scheduledTime
+            }),
+            signal: AbortSignal.timeout(30000)
         });
 
-        if (!res.ok) throw new Error('Generation failed');
+        if (!res.ok) {
+            if (res.status === 401) {
+                throw new Error('Session expired. Please sign in again.');
+            }
+            throw new Error(`Generation failed: ${res.statusText}`);
+        }
 
         const result = await res.json();
         displayResult(result);
-        showToast('Content generated successfully!', 'success');
+        showToast('Content generated successfully! 🎉', 'success');
+
+        // Clear form
+        form.reset();
     } catch (error) {
-        showToast(error.message, 'error');
+        console.error('Generation error:', error);
+        showToast(error.message || 'Failed to generate content', 'error');
     } finally {
         setLoading(false);
     }
 }
 
 function displayResult(data) {
-    elements.resultBox.classList.add('show');
-    elements.resultContent.textContent = JSON.stringify(data, null, 2);
-    elements.resultBox.scrollIntoView({ behavior: 'smooth' });
+    const resultBox = document.getElementById('resultBox');
+    const resultContent = document.getElementById('resultContent');
+
+    if (resultBox && resultContent) {
+        resultBox.style.display = 'block';
+        resultContent.textContent = JSON.stringify(data, null, 2);
+        resultBox.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Payments
+async function createCheckout(variantId, plan) {
+    if (!state.token) {
+        showToast('Please sign in first to upgrade', 'error');
+        document.getElementById('account')?.scrollIntoView({ behavior: 'smooth' });
+        return;
+    }
+
+    try {
+        const res = await fetch(`${CONFIG.BACKEND_URL}/payments/create-checkout`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${state.token}`
+            },
+            body: JSON.stringify({ variantId })
+        });
+
+        if (!res.ok) throw new Error('Checkout failed');
+
+        const data = await res.json();
+        window.location.href = data.url;
+    } catch (error) {
+        showToast('Payment setup failed. Please try again.', 'error');
+    }
 }
 
 // Utilities
 async function checkBackendStatus() {
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+
+    if (!statusDot || !statusText) return;
+
     try {
-        const res = await fetch(CONFIG.BACKEND_URL);
+        const res = await fetch(CONFIG.BACKEND_URL, { signal: AbortSignal.timeout(5000) });
+
         if (res.ok) {
-            elements.statusDot.className = 'status-dot connected';
-            elements.statusText.textContent = 'System Operational';
+            statusDot.className = 'status-dot connected';
+            statusText.textContent = 'System Operational';
+        } else {
+            throw new Error('Backend error');
         }
     } catch {
-        elements.statusDot.className = 'status-dot error';
-        elements.statusText.textContent = 'Backend Offline';
+        statusDot.className = 'status-dot error';
+        statusText.textContent = 'Backend Offline';
     }
 }
 
 function setLoading(isLoading) {
-    elements.submitBtn.disabled = isLoading;
-    elements.btnText.textContent = isLoading ? 'Generating...' : 'Generate Content';
-    elements.btnSpinner.style.display = isLoading ? 'inline-block' : 'none';
+    const btn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+
+    if (btn) btn.disabled = isLoading;
+    if (btnText) btnText.textContent = isLoading ? 'Generating...' : 'Generate Content';
+    if (btnSpinner) btnSpinner.style.display = isLoading ? 'inline-block' : 'none';
 }
 
 function showToast(message, type = 'info') {
-    // Simple toast implementation
     const toast = document.createElement('div');
     toast.className = `message ${type}`;
-    toast.style.position = 'fixed';
-    toast.style.bottom = '20px';
-    toast.style.right = '20px';
-    toast.style.zIndex = '9999';
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;padding:1rem 1.5rem;border-radius:0.5rem;box-shadow:0 10px 15px rgba(0,0,0,0.1);animation:slideIn 0.3s ease;';
     toast.textContent = message;
+
+    // Color based on type
+    const colors = {
+        success: { bg: '#d1fae5', text: '#065f46' },
+        error: { bg: '#fee2e2', text: '#991b1b' },
+        info: { bg: '#dbeafe', text: '#1e40af' }
+    };
+
+    const c = colors[type] || colors.info;
+    toast.style.background = c.bg;
+    toast.style.color = c.text;
+
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => toast.remove(), 4000);
 }
 
 function setupEventListeners() {
-    elements.themeToggle?.addEventListener('click', toggleTheme);
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
 
-    elements.loginForm?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        login(email);
-    });
+    // Login form
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail')?.value;
+            if (email) login(email);
+        });
+    }
 
-    elements.contentForm?.addEventListener('submit', generateContent);
+    // Content form
+    const contentForm = document.getElementById('contentForm');
+    if (contentForm) {
+        contentForm.addEventListener('submit', generateContent);
+    }
 
     // Schedule toggle
     const scheduleCheckbox = document.getElementById('schedulePost');
-    if (scheduleCheckbox) {
+    const scheduleTime = document.getElementById('scheduleTime');
+    if (scheduleCheckbox && scheduleTime) {
         scheduleCheckbox.addEventListener('change', (e) => {
-            document.getElementById('scheduleTime').style.display = e.target.checked ? 'block' : 'none';
+            scheduleTime.style.display = e.target.checked ? 'block' : 'none';
         });
     }
+
+    // Pricing buttons
+    const proPlanBtn = document.getElementById('proPlanButton');
+    const premiumPlanBtn = document.getElementById('premiumPlanButton');
+
+    if (proPlanBtn) {
+        proPlanBtn.addEventListener('click', () => {
+            createCheckout(CONFIG.LEMONSQUEEZY_PRO, 'pro');
+        });
+    }
+
+    if (premiumPlanBtn) {
+        premiumPlanBtn.addEventListener('click', () => {
+            createCheckout(CONFIG.LEMONSQUEEZY_PREMIUM, 'premium');
+        });
+    }
+
+    // Smooth scroll for all anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href === '#') return;
+
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
 }
+
+// Make functions available globally if needed
+window.logout = logout;
+window.createCheckout = createCheckout;
