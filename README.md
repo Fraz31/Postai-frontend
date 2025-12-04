@@ -1,37 +1,33 @@
-# PostAI Frontend
+# 🐵 Social Monkey
 
-Static frontend for PostAI SaaS application.
+**The AI-Powered Social Media Automation Platform for Modern Creators.**
 
-## Render Deployment
+Social Monkey is a cutting-edge SaaS platform designed to supercharge social media growth. By leveraging advanced Artificial Intelligence, it enables creators, agencies, and businesses to generate, schedule, and optimize content across multiple platforms in seconds.
 
-### Static Site Configuration
+## 🚀 Key Features
 
-- **Environment**: Static Site
-- **Build Command**: (leave empty)
-- **Publish Directory**: `.` (root directory)
+-   **🤖 AI Content Generator**: Create viral tweets, LinkedIn articles, and Instagram captions with a single click.
+-   **📅 Smart Calendar**: Visual content scheduling to keep your audience engaged 24/7.
+-   **📊 Advanced Analytics**: Real-time insights into engagement, growth, and performance.
+-   **📚 Content Library**: Organize, edit, and repurpose your best performing content.
+-   **🎨 Premium UI/UX**: A stunning, "Cosmic Intelligence" themed interface designed for focus and productivity.
 
-The frontend will be served as a static site. Make sure to configure the backend URL if needed.
+## 🛠️ Tech Stack
 
-### Connecting to Backend
+-   **Frontend**: Vanilla JS (SPA Architecture), CSS3 (Glassmorphism), Chart.js
+-   **Backend**: Node.js, Express, MongoDB
+-   **AI**: Integrated with LLMs for high-quality content generation.
 
-The frontend will try to connect to the backend API. If your backend is deployed on Render, you can:
+## 📦 Installation & Setup
 
-1. Use the backend's Render URL directly in the fetch call
-2. Or configure a reverse proxy/rewrite rule in Render
+1.  Clone the repository.
+2.  Open `index.html` in your browser (or serve with a local server like Live Server).
+3.  Ensure the backend API is running.
 
-Update the `API_URL` in `index.html` if your backend is on a different domain.
+## 💎 Value Proposition
 
-## Local Development
+Social Monkey isn't just a tool; it's a growth partner. We save users an average of **15 hours per week** on content creation, allowing them to focus on what matters most: building relationships and growing their business.
 
-Simply open `index.html` in a browser or use a local server:
+---
 
-```bash
-# Using Python
-python -m http.server 8000
-
-# Using Node.js (http-server)
-npx http-server -p 8000
-```
-
-Then open `http://localhost:8000` in your browser.
-
+*Built for the future of social media.*
