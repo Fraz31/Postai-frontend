@@ -1,6 +1,6 @@
 /**
  * Social Monkey Frontend Logic
- * Complete MVP with all features working
+ * Cosmic Intelligence Theme Update
  */
 
 // Configuration
@@ -14,35 +14,46 @@ const CONFIG = {
 const state = {
     user: null,
     token: localStorage.getItem('socialmonkey_token'),
-    theme: localStorage.getItem('theme') || 'light'
+    theme: 'dark' // Enforce dark theme for Cosmic design
 };
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🐵 Social Monkey initialized!');
-    initTheme();
     loadUser();
     checkBackendStatus();
     setupEventListeners();
+    setupScrollEffects();
 });
 
-// Theme Management
-function initTheme() {
-    if (state.theme === 'dark') {
-        document.body.classList.add('dark-mode');
-        const toggle = document.getElementById('themeToggle');
-        if (toggle) toggle.innerHTML = '<i class="fas fa-sun"></i>';
-    }
-}
+// Scroll Effects
+function setupScrollEffects() {
+    const navbar = document.querySelector('.navbar');
 
-function toggleTheme() {
-    state.theme = state.theme === 'light' ? 'dark' : 'light';
-    document.body.classList.toggle('dark-mode');
-    localStorage.setItem('theme', state.theme);
-    const toggle = document.getElementById('themeToggle');
-    if (toggle) {
-        toggle.innerHTML = state.theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    }
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Intersection Observer for fade-in animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.feature-card, .pricing-card').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s ease-out';
+        observer.observe(el);
+    });
 }
 
 // Auth & User Management
@@ -67,8 +78,8 @@ async function loadUser() {
 }
 
 async function login(email) {
-    const statusEl = document.getElementById('loginStatus');
-    if (statusEl) statusEl.textContent = 'Signing in...';
+    // Show loading state on button if possible, or toast
+    showToast('Signing in...', 'info');
 
     try {
         const res = await fetch(`${CONFIG.BACKEND_URL}/auth/login`, {
@@ -87,10 +98,13 @@ async function login(email) {
         updateUI(state.user);
         showToast('Welcome to Social Monkey! 🐵', 'success');
 
-        if (statusEl) statusEl.textContent = `Signed in as ${data.user.email}`;
+        // Redirect to dashboard if on index
+        if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+            setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        }
+
     } catch (error) {
         showToast('Unable to sign in. Please try again.', 'error');
-        if (statusEl) statusEl.textContent = 'Sign in failed';
     }
 }
 
@@ -100,33 +114,15 @@ function logout() {
     localStorage.removeItem('socialmonkey_token');
     updateUI(null);
     showToast('Signed out successfully', 'info');
+    window.location.href = 'index.html';
 }
 
 function updateUI(user) {
-    // Update Subscription Badge
-    const badge = document.getElementById('subscriptionBadge');
-    if (badge) {
-        const plan = user?.subscriptionPlan || 'free';
-        badge.className = `badge badge-${plan}`;
-        badge.textContent = plan.toUpperCase();
-    }
-
-    // Update Pricing Buttons
-    updatePricingButtons(user?.subscriptionPlan || 'free');
+    // Update UI elements based on user state if needed
+    // For now, mostly handled by redirection to dashboard
 }
 
-function updatePricingButtons(plan) {
-    const plans = ['free', 'pro', 'premium'];
-    plans.forEach(p => {
-        const btn = document.getElementById(`${p}PlanButton`);
-        if (btn) {
-            btn.disabled = plan === p;
-            btn.textContent = plan === p ? 'Current Plan' : `Upgrade to ${p.charAt(0).toUpperCase() + p.slice(1)}`;
-        }
-    });
-}
-
-// Content Generation (with Demo Mode)
+// Content Generation
 async function generateContent(e) {
     e.preventDefault();
 
@@ -147,12 +143,11 @@ async function generateContent(e) {
         const demoCount = parseInt(localStorage.getItem('socialmonkey_demo_count') || '0');
 
         if (demoCount >= 3) {
-            showToast('Demo limit reached! Sign up to continue creating content.', 'info');
+            showToast('Demo limit reached! Sign up to continue.', 'info');
             document.getElementById('account')?.scrollIntoView({ behavior: 'smooth' });
             return;
         }
 
-        // Mock demo generation
         setLoading(true);
         setTimeout(() => {
             const mockResult = {
@@ -161,11 +156,11 @@ async function generateContent(e) {
                 demo: true
             };
 
-            display Result(mockResult);
+            displayResult(mockResult);
             saveToContentLibrary({ contentType, prompt, platforms, result: mockResult.content, created: new Date().toISOString() });
 
             localStorage.setItem('socialmonkey_demo_count', (demoCount + 1).toString());
-            showToast(`Demo ${demoCount + 1}/3 used. ${3 - demoCount - 1} demos remaining!`, 'info');
+            showToast(`Demo ${demoCount + 1}/3 used.`, 'success');
 
             setLoading(false);
             form.reset();
@@ -173,7 +168,7 @@ async function generateContent(e) {
         return;
     }
 
-    // Regular generation for logged-in users
+    // Regular generation
     setLoading(true);
 
     try {
@@ -194,9 +189,7 @@ async function generateContent(e) {
         });
 
         if (!res.ok) {
-            if (res.status === 401) {
-                throw new Error('Session expired. Please sign in again.');
-            }
+            if (res.status === 401) throw new Error('Session expired. Please sign in again.');
             throw new Error(`Generation failed: ${res.statusText}`);
         }
 
@@ -205,7 +198,6 @@ async function generateContent(e) {
         saveToContentLibrary({ contentType, prompt, platforms, result: JSON.stringify(result), created: new Date().toISOString() });
         showToast('Content generated successfully! 🎉', 'success');
 
-        // Clear form
         form.reset();
     } catch (error) {
         console.error('Generation error:', error);
@@ -228,35 +220,8 @@ function displayResult(data) {
 
 function saveToContentLibrary(content) {
     const library = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
-    library.unshift(content); // Add to beginning
-    localStorage.setItem('socialmonkey_content', JSON.stringify(library.slice(0, 50))); // Keep last 50
-}
-
-// Payments
-async function createCheckout(variantId, plan) {
-    if (!state.token) {
-        showToast('Please sign in first to upgrade', 'error');
-        document.getElementById('account')?.scrollIntoView({ behavior: 'smooth' });
-        return;
-    }
-
-    try {
-        const res = await fetch(`${CONFIG.BACKEND_URL}/payments/create-checkout`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${state.token}`
-            },
-            body: JSON.stringify({ variantId })
-        });
-
-        if (!res.ok) throw new Error('Checkout failed');
-
-        const data = await res.json();
-        window.location.href = data.url;
-    } catch (error) {
-        showToast('Payment setup failed. Please try again.', 'error');
-    }
+    library.unshift(content);
+    localStorage.setItem('socialmonkey_content', JSON.stringify(library.slice(0, 50)));
 }
 
 // Utilities
@@ -270,13 +235,14 @@ async function checkBackendStatus() {
         const res = await fetch(CONFIG.BACKEND_URL, { signal: AbortSignal.timeout(5000) });
 
         if (res.ok) {
-            statusDot.className = 'status-dot connected';
+            statusDot.style.background = '#10b981'; // Success green
+            statusDot.style.boxShadow = '0 0 10px #10b981';
             statusText.textContent = 'System Operational';
         } else {
             throw new Error('Backend error');
         }
     } catch {
-        statusDot.className = 'status-dot error';
+        statusDot.style.background = '#ef4444'; // Error red
         statusText.textContent = 'Backend Offline';
     }
 }
@@ -293,30 +259,56 @@ function setLoading(isLoading) {
 
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.className = `message ${type}`;
-    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;padding:1rem 1.5rem;border-radius:0.5rem;box-shadow:0 10px 15px rgba(0,0,0,0.1);animation:slideIn 0.3s ease;';
-    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        padding: 1rem 1.5rem;
+        border-radius: 1rem;
+        background: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        animation: slideIn 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    `;
 
-    // Color based on type
-    const colors = {
-        success: { bg: '#d1fae5', text: '#065f46' },
-        error: { bg: '#fee2e2', text: '#991b1b' },
-        info: { bg: '#dbeafe', text: '#1e40af' }
-    };
+    // Icon based on type
+    let icon = 'info-circle';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'error') icon = 'exclamation-circle';
 
-    const c = colors[type] || colors.info;
-    toast.style.background = c.bg;
-    toast.style.color = c.text;
+    toast.innerHTML = `<i class="fas fa-${icon}" style="color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'}"></i> ${message}`;
 
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
+
+    // Add keyframes if not exists
+    if (!document.getElementById('toast-style')) {
+        const style = document.createElement('style');
+        style.id = 'toast-style';
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateY(100%); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
 }
 
 function setupEventListeners() {
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
-
     // Login form
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -342,23 +334,7 @@ function setupEventListeners() {
         });
     }
 
-    // Pricing buttons
-    const proPlanBtn = document.getElementById('proPlanButton');
-    const premiumPlanBtn = document.getElementById('premiumPlanButton');
-
-    if (proPlanBtn) {
-        proPlanBtn.addEventListener('click', () => {
-            createCheckout(CONFIG.LEMONSQUEEZY_PRO, 'pro');
-        });
-    }
-
-    if (premiumPlanBtn) {
-        premiumPlanBtn.addEventListener('click', () => {
-            createCheckout(CONFIG.LEMONSQUEEZY_PREMIUM, 'premium');
-        });
-    }
-
-    // Smooth scroll for all anchor links
+    // Smooth scroll
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
@@ -373,6 +349,5 @@ function setupEventListeners() {
     });
 }
 
-// Make functions available globally if needed
+// Global exports
 window.logout = logout;
-window.createCheckout = createCheckout;
