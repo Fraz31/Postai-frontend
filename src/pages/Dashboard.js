@@ -123,7 +123,6 @@ export function Dashboard() {
 // --- Tab Renderers ---
 
 async function renderOverview() {
-    // Fetch real stats if possible, or use mock
     return `
         <div class="grid-3" style="margin-bottom: 3rem;">
             <div class="stat-card">
@@ -136,7 +135,7 @@ async function renderOverview() {
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-share-alt text-gradient"></i></div>
-                <div><h2>3</h2><p>Platforms</p></div>
+                <div><h2>5</h2><p>Platforms</p></div>
             </div>
         </div>
         <div class="glass-panel" style="padding: 2rem;">
@@ -156,8 +155,10 @@ async function renderCreate() {
                 <div class="form-group">
                     <label class="form-label">Content Type</label>
                     <select id="contentType" class="form-control">
-                        <option value="post">Social Post</option>
-                        <option value="thread">Thread</option>
+                        <option value="post">Social Media Post</option>
+                        <option value="thread">Twitter Thread</option>
+                        <option value="carousel">Instagram Carousel</option>
+                        <option value="article">LinkedIn Article</option>
                         <option value="caption">Caption</option>
                     </select>
                 </div>
@@ -166,20 +167,39 @@ async function renderCreate() {
                     <textarea id="prompt" class="form-control" rows="5" required placeholder="What should this post be about?"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Platforms</label>
-                    <div style="display: flex; gap: 1rem;">
+                    <label class="form-label">Target Platforms</label>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <label><input type="checkbox" value="twitter" checked> Twitter</label>
                         <label><input type="checkbox" value="linkedin"> LinkedIn</label>
+                        <label><input type="checkbox" value="instagram"> Instagram</label>
+                        <label><input type="checkbox" value="facebook"> Facebook</label>
+                        <label><input type="checkbox" value="tiktok"> TikTok</label>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="generateImage"> 
+                        <span>Generate AI Image (Stability AI) <i class="fas fa-image text-gradient"></i></span>
+                    </label>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">Generate Content</button>
             </form>
             <div id="result" style="display: none; margin-top: 2rem;" class="glass-panel">
                 <h4 style="margin-bottom: 1rem;">Generated Result</h4>
                 <pre id="resultText" style="white-space: pre-wrap; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 0.5rem;"></pre>
-                <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                
+                <div id="imageResult" style="display: none; margin-top: 1rem;">
+                    <p class="text-muted">Generated Image:</p>
+                    <div style="width: 100%; height: 300px; background: #111; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem;">
+                        <i class="fas fa-image" style="font-size: 3rem; color: var(--text-muted);"></i>
+                        <span style="margin-left: 1rem; color: var(--text-muted);">Image Placeholder</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                     <button id="copyBtn" class="btn btn-secondary">Copy</button>
                     <button id="saveBtn" class="btn btn-primary">Save to Library</button>
+                    <button id="repurposeBtn" class="btn btn-secondary"><i class="fas fa-sync"></i> Repurpose</button>
                 </div>
             </div>
         </div>
@@ -196,7 +216,8 @@ function attachCreateListeners(div) {
         e.preventDefault();
         const prompt = div.querySelector('#prompt').value;
         const type = div.querySelector('#contentType').value;
-        const platforms = Array.from(div.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+        const platforms = Array.from(div.querySelectorAll('input[type=checkbox]:checked:not(#generateImage)')).map(cb => cb.value);
+        const genImage = div.querySelector('#generateImage').checked;
         const btn = form.querySelector('button[type=submit]');
 
         try {
@@ -208,6 +229,13 @@ function attachCreateListeners(div) {
 
             div.querySelector('#result').style.display = 'block';
             div.querySelector('#resultText').textContent = res.content;
+
+            if (genImage) {
+                div.querySelector('#imageResult').style.display = 'block';
+            } else {
+                div.querySelector('#imageResult').style.display = 'none';
+            }
+
         } catch (error) {
             alert(error.message);
         } finally {
@@ -226,10 +254,9 @@ function attachCreateListeners(div) {
     div.querySelector('#saveBtn').addEventListener('click', async () => {
         if (lastResult) {
             try {
-                // Save to backend
                 await api.createPost({
                     content: lastResult.content,
-                    platform: lastResult.platforms[0] || 'twitter', // Backend schema might expect single platform or array, let's assume single for MVP
+                    platform: lastResult.platforms[0] || 'twitter',
                     status: 'draft'
                 });
                 alert('Saved to Library!');
@@ -239,11 +266,14 @@ function attachCreateListeners(div) {
             }
         }
     });
+
+    div.querySelector('#repurposeBtn').addEventListener('click', () => {
+        alert('Repurposing feature coming soon! This will adapt your content for other platforms.');
+    });
 }
 
 async function renderCalendar() {
-    // Mock calendar grid
-    const days = Array.from({ length: 35 }, (_, i) => i + 1); // 5 weeks
+    const days = Array.from({ length: 35 }, (_, i) => i + 1);
     const today = new Date().getDate();
 
     return `
@@ -258,13 +288,13 @@ async function renderCalendar() {
                 `).join('')}
                 ${days.map(d => {
         const isToday = d === today;
-        const hasEvent = d % 3 === 0; // Mock events
+        const hasEvent = d % 3 === 0;
         return `
                     <div style="padding: 1rem; background: var(--bg-card); min-height: 100px; position: relative;">
                         <span style="${isToday ? 'background: var(--primary); color: white; padding: 0.2rem 0.5rem; border-radius: 50%;' : ''}">${d <= 31 ? d : ''}</span>
                         ${hasEvent && d <= 31 ? `
                             <div style="margin-top: 0.5rem; font-size: 0.7rem; background: rgba(139, 92, 246, 0.2); color: var(--primary); padding: 0.2rem; border-radius: 0.2rem;">
-                                <i class="fab fa-twitter"></i> Post
+                                <i class="fab fa-twitter"></i> 10:00 AM
                             </div>
                         ` : ''}
                     </div>
@@ -315,7 +345,6 @@ function attachLibraryListeners(div) {
             if (confirm('Delete this post?')) {
                 try {
                     await api.deletePost(btn.dataset.id);
-                    // Refresh tab
                     document.querySelector('[data-tab=library]').click();
                 } catch (error) {
                     alert(error.message);
@@ -329,13 +358,17 @@ async function renderAnalytics() {
     return `
         <div class="grid-3" style="grid-template-columns: 2fr 1fr; margin-bottom: 2rem;">
             <div class="glass-panel" style="padding: 2rem;">
-                <h3>Performance</h3>
+                <h3>Engagement Growth</h3>
                 <canvas id="perfChart"></canvas>
             </div>
             <div class="glass-panel" style="padding: 2rem;">
-                <h3>Platforms</h3>
+                <h3>Platform Split</h3>
                 <canvas id="platChart"></canvas>
             </div>
+        </div>
+        <div class="glass-panel" style="padding: 2rem;">
+            <h3>Top Performing Posts</h3>
+            <p class="text-muted">Coming soon...</p>
         </div>
     `;
 }
@@ -350,13 +383,15 @@ function initCharts(div) {
             data: {
                 labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 datasets: [{
-                    label: 'Views',
+                    label: 'Impressions',
                     data: [120, 190, 300, 500, 200, 300, 450],
                     borderColor: '#8b5cf6',
-                    tension: 0.4
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)'
                 }]
             },
-            options: { responsive: true }
+            options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#aaa' } }, x: { ticks: { color: '#aaa' } } } }
         });
     }
 
@@ -364,13 +399,14 @@ function initCharts(div) {
         new Chart(platCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Twitter', 'LinkedIn', 'Instagram'],
+                labels: ['Twitter', 'LinkedIn', 'Instagram', 'Facebook'],
                 datasets: [{
-                    data: [55, 30, 15],
-                    backgroundColor: ['#1DA1F2', '#0A66C2', '#E4405F']
+                    data: [40, 30, 20, 10],
+                    backgroundColor: ['#1DA1F2', '#0A66C2', '#E4405F', '#1877F2'],
+                    borderWidth: 0
                 }]
             },
-            options: { responsive: true }
+            options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
         });
     }
 }

@@ -8,6 +8,9 @@ const routes = {
     '/login': () => import('./pages/Login.js').then(m => m.Login()),
     '/register': () => import('./pages/Register.js').then(m => m.Register()),
     '/dashboard': () => import('./pages/Dashboard.js').then(m => m.Dashboard()),
+    '/contact': () => import('./pages/Contact.js').then(m => m.Contact()),
+    '/privacy': () => import('./pages/Privacy.js').then(m => m.Privacy()),
+    '/terms': () => import('./pages/Terms.js').then(m => m.Terms()),
 };
 
 export class Router {
