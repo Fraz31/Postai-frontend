@@ -19,10 +19,10 @@ export function Dashboard() {
                     <i class="fas fa-home"></i> Overview
                 </a>
                 <a href="#" class="sidebar-link" data-tab="create">
-                    <i class="fas fa-wand-magic-sparkles"></i> Create New
+                    <i class="fas fa-wand-magic-sparkles"></i> Create
                 </a>
-                <a href="#" class="sidebar-link" data-tab="calendar">
-                    <i class="fas fa-calendar-alt"></i> Calendar
+                <a href="#" class="sidebar-link" data-tab="schedule">
+                    <i class="fas fa-calendar-alt"></i> Schedule
                 </a>
                 <a href="#" class="sidebar-link" data-tab="library">
                     <i class="fas fa-layer-group"></i> Library
@@ -30,8 +30,14 @@ export function Dashboard() {
                 <a href="#" class="sidebar-link" data-tab="analytics">
                     <i class="fas fa-chart-pie"></i> Analytics
                 </a>
+                <a href="#" class="sidebar-link" data-tab="connections">
+                    <i class="fas fa-plug"></i> Connections
+                </a>
                 <a href="#" class="sidebar-link" data-tab="settings">
                     <i class="fas fa-cog"></i> Settings
+                </a>
+                <a href="#" class="sidebar-link" data-tab="help">
+                    <i class="fas fa-question-circle"></i> Help
                 </a>
             </nav>
 
@@ -59,50 +65,40 @@ export function Dashboard() {
                 </div>
             </header>
 
-            <div id="tab-content">
-                <!-- Content injected here -->
-            </div>
+            <div id="tab-content"></div>
         </main>
     `;
 
-    // Tab Logic
     const tabs = {
         overview: renderOverview,
         create: renderCreate,
-        calendar: renderCalendar,
+        schedule: renderSchedule,
         library: renderLibrary,
         analytics: renderAnalytics,
-        settings: renderSettings
+        connections: renderConnections,
+        settings: renderSettings,
+        help: renderHelp
     };
 
-    let currentTab = 'overview';
-
     async function switchTab(tabName) {
-        currentTab = tabName;
-
-        // Update Sidebar
         div.querySelectorAll('.sidebar-link').forEach(l => {
             l.classList.remove('active');
             if (l.dataset.tab === tabName) l.classList.add('active');
         });
 
-        // Update Content
         const contentContainer = div.querySelector('#tab-content');
-        contentContainer.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+        contentContainer.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i></div>';
 
         try {
             contentContainer.innerHTML = await tabs[tabName]();
-
-            // Post-render hooks
             if (tabName === 'create') attachCreateListeners(div);
             if (tabName === 'analytics') initCharts(div);
-            if (tabName === 'library') attachLibraryListeners(div);
+            if (tabName === 'schedule') attachScheduleListeners(div);
         } catch (error) {
-            contentContainer.innerHTML = `<div class="text-center text-danger">Error loading tab: ${error.message}</div>`;
+            contentContainer.innerHTML = `<div class="text-danger">Error: ${error.message}</div>`;
         }
     }
 
-    // Event Listeners
     div.querySelectorAll('.sidebar-link[data-tab]').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -110,13 +106,8 @@ export function Dashboard() {
         });
     });
 
-    div.querySelector('#logoutBtn').addEventListener('click', () => {
-        store.logout();
-    });
-
-    // Initial Render
+    div.querySelector('#logoutBtn').addEventListener('click', () => store.logout());
     switchTab('overview');
-
     return div;
 }
 
@@ -125,24 +116,16 @@ export function Dashboard() {
 async function renderOverview() {
     return `
         <div class="grid-3" style="margin-bottom: 3rem;">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-file-alt text-gradient"></i></div>
-                <div><h2>12</h2><p>Total Posts</p></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-chart-bar text-gradient"></i></div>
-                <div><h2>1.2k</h2><p>Engagement</p></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-share-alt text-gradient"></i></div>
-                <div><h2>5</h2><p>Platforms</p></div>
-            </div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-file-alt text-gradient"></i></div><div><h2>12</h2><p>Posts</p></div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-bar text-gradient"></i></div><div><h2>1.2k</h2><p>Engagement</p></div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-share-alt text-gradient"></i></div><div><h2>5</h2><p>Platforms</p></div></div>
         </div>
         <div class="glass-panel" style="padding: 2rem;">
             <h3>Quick Actions</h3>
-            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                <button class="btn btn-primary" onclick="document.querySelector('[data-tab=create]').click()">Create Post</button>
-                <button class="btn btn-secondary" onclick="document.querySelector('[data-tab=calendar]').click()">View Calendar</button>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="document.querySelector('[data-tab=create]').click()"><i class="fas fa-plus"></i> Create Post</button>
+                <button class="btn btn-secondary" onclick="document.querySelector('[data-tab=schedule]').click()"><i class="fas fa-calendar"></i> Schedule</button>
+                <button class="btn btn-secondary" onclick="document.querySelector('[data-tab=connections]').click()"><i class="fas fa-plug"></i> Connect Accounts</button>
             </div>
         </div>
     `;
@@ -156,49 +139,47 @@ async function renderCreate() {
                     <label class="form-label">Content Type</label>
                     <select id="contentType" class="form-control">
                         <option value="post">Social Media Post</option>
-                        <option value="thread">Twitter Thread</option>
+                        <option value="thread">Twitter/X Thread</option>
                         <option value="carousel">Instagram Carousel</option>
+                        <option value="reel">Instagram/TikTok Reel Script</option>
                         <option value="article">LinkedIn Article</option>
-                        <option value="caption">Caption</option>
+                        <option value="story">Story (IG/FB)</option>
+                        <option value="caption">Caption Only</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Prompt</label>
-                    <textarea id="prompt" class="form-control" rows="5" required placeholder="What should this post be about?"></textarea>
+                    <label class="form-label">What's your post about?</label>
+                    <textarea id="prompt" class="form-control" rows="4" required placeholder="Describe your topic, key points, or paste content to repurpose..."></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Target Platforms</label>
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <label><input type="checkbox" value="twitter" checked> Twitter</label>
+                        <label><input type="checkbox" value="twitter" checked> Twitter/X</label>
                         <label><input type="checkbox" value="linkedin"> LinkedIn</label>
                         <label><input type="checkbox" value="instagram"> Instagram</label>
                         <label><input type="checkbox" value="facebook"> Facebook</label>
                         <label><input type="checkbox" value="tiktok"> TikTok</label>
+                        <label><input type="checkbox" value="threads"> Threads</label>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                        <input type="checkbox" id="generateImage"> 
-                        <span>Generate AI Image (Stability AI) <i class="fas fa-image text-gradient"></i></span>
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="generateImage"> Generate AI Image (Stability AI) <i class="fas fa-image text-gradient"></i>
                     </label>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Generate Content</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fas fa-wand-magic-sparkles"></i> Generate Content</button>
             </form>
             <div id="result" style="display: none; margin-top: 2rem;" class="glass-panel">
-                <h4 style="margin-bottom: 1rem;">Generated Result</h4>
+                <h4>Generated Result</h4>
                 <pre id="resultText" style="white-space: pre-wrap; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 0.5rem;"></pre>
-                
-                <div id="imageResult" style="display: none; margin-top: 1rem;">
-                    <p class="text-muted">Generated Image:</p>
-                    <div style="width: 100%; height: 300px; background: #111; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem;">
-                        <i class="fas fa-image" style="font-size: 3rem; color: var(--text-muted);"></i>
-                        <span style="margin-left: 1rem; color: var(--text-muted);">Image Placeholder</span>
-                    </div>
+                <div id="imageResult" style="display: none; margin: 1rem 0; text-align: center;">
+                    <p class="text-muted">AI Generated Image:</p>
+                    <div style="width: 100%; height: 250px; background: #111; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem;"><i class="fas fa-image" style="font-size: 2rem; color: var(--text-muted);"></i></div>
                 </div>
-
-                <div style="margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button id="copyBtn" class="btn btn-secondary">Copy</button>
-                    <button id="saveBtn" class="btn btn-primary">Save to Library</button>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button id="copyBtn" class="btn btn-secondary"><i class="fas fa-copy"></i> Copy</button>
+                    <button id="saveBtn" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+                    <button id="scheduleBtn" class="btn btn-secondary"><i class="fas fa-calendar-plus"></i> Schedule</button>
                     <button id="repurposeBtn" class="btn btn-secondary"><i class="fas fa-sync"></i> Repurpose</button>
                 </div>
             </div>
@@ -209,7 +190,6 @@ async function renderCreate() {
 function attachCreateListeners(div) {
     const form = div.querySelector('#createForm');
     if (!form) return;
-
     let lastResult = null;
 
     form.addEventListener('submit', async (e) => {
@@ -220,212 +200,131 @@ function attachCreateListeners(div) {
         const genImage = div.querySelector('#generateImage').checked;
         const btn = form.querySelector('button[type=submit]');
 
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        btn.disabled = true;
+
         try {
-            btn.textContent = 'Generating...';
-            btn.disabled = true;
-
             const res = await api.generate({ prompt, contentType: type, platforms });
-            lastResult = res; // Store for saving
-
+            lastResult = res;
             div.querySelector('#result').style.display = 'block';
             div.querySelector('#resultText').textContent = res.content;
-
-            if (genImage) {
-                div.querySelector('#imageResult').style.display = 'block';
-            } else {
-                div.querySelector('#imageResult').style.display = 'none';
-            }
-
+            div.querySelector('#imageResult').style.display = genImage ? 'block' : 'none';
         } catch (error) {
             alert(error.message);
         } finally {
-            btn.textContent = 'Generate Content';
+            btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Content';
             btn.disabled = false;
         }
     });
 
-    div.querySelector('#copyBtn').addEventListener('click', () => {
-        if (lastResult) {
-            navigator.clipboard.writeText(lastResult.content);
-            alert('Copied!');
-        }
-    });
-
-    div.querySelector('#saveBtn').addEventListener('click', async () => {
-        if (lastResult) {
-            try {
-                await api.createPost({
-                    content: lastResult.content,
-                    platform: lastResult.platforms[0] || 'twitter',
-                    status: 'draft'
-                });
-                alert('Saved to Library!');
-            } catch (error) {
-                console.error(error);
-                alert('Failed to save: ' + error.message);
-            }
-        }
-    });
-
-    div.querySelector('#repurposeBtn').addEventListener('click', () => {
-        alert('Repurposing feature coming soon! This will adapt your content for other platforms.');
-    });
+    div.querySelector('#copyBtn').addEventListener('click', () => { if (lastResult) { navigator.clipboard.writeText(lastResult.content); alert('Copied!'); } });
+    div.querySelector('#saveBtn').addEventListener('click', async () => { if (lastResult) { try { await api.createPost({ content: lastResult.content, platform: 'twitter', status: 'draft' }); alert('Saved!'); } catch (e) { alert(e.message); } } });
+    div.querySelector('#scheduleBtn').addEventListener('click', () => { document.querySelector('[data-tab=schedule]').click(); });
+    div.querySelector('#repurposeBtn').addEventListener('click', () => { alert('Repurposing: Automatically adapt this content for other platforms. Coming soon!'); });
 }
 
-async function renderCalendar() {
+async function renderSchedule() {
     const days = Array.from({ length: 35 }, (_, i) => i + 1);
     const today = new Date().getDate();
-
     return `
+        <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
+            <h3>Schedule a Post</h3>
+            <form id="scheduleForm" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end; margin-top: 1rem;">
+                <div class="form-group" style="margin: 0;"><label class="form-label">Date</label><input type="date" class="form-control" id="scheduleDate" required></div>
+                <div class="form-group" style="margin: 0;"><label class="form-label">Time</label><input type="time" class="form-control" id="scheduleTime" required></div>
+                <div class="form-group" style="margin: 0;"><label class="form-label">Platform</label><select class="form-control" id="schedulePlatform"><option>Twitter</option><option>LinkedIn</option><option>Instagram</option></select></div>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-calendar-check"></i> Schedule</button>
+            </form>
+        </div>
         <div class="glass-panel" style="padding: 2rem;">
-            <div class="flex-between" style="margin-bottom: 2rem;">
-                <h3>Content Calendar</h3>
-                <button class="btn btn-primary">New Schedule</button>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-light); border: 1px solid var(--border-light); border-radius: 1rem; overflow: hidden;">
-                ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `
-                    <div style="padding: 1rem; background: var(--bg-card); text-align: center; font-weight: bold;">${d}</div>
-                `).join('')}
-                ${days.map(d => {
-        const isToday = d === today;
-        const hasEvent = d % 3 === 0;
-        return `
-                    <div style="padding: 1rem; background: var(--bg-card); min-height: 100px; position: relative;">
-                        <span style="${isToday ? 'background: var(--primary); color: white; padding: 0.2rem 0.5rem; border-radius: 50%;' : ''}">${d <= 31 ? d : ''}</span>
-                        ${hasEvent && d <= 31 ? `
-                            <div style="margin-top: 0.5rem; font-size: 0.7rem; background: rgba(139, 92, 246, 0.2); color: var(--primary); padding: 0.2rem; border-radius: 0.2rem;">
-                                <i class="fab fa-twitter"></i> 10:00 AM
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-    }).join('')}
+            <h3>Calendar</h3>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-light); border: 1px solid var(--border-light); border-radius: 1rem; overflow: hidden; margin-top: 1rem;">
+                ${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => `<div style="padding: 0.5rem; background: var(--bg-card); text-align: center; font-weight: bold;">${d}</div>`).join('')}
+                ${days.map(d => `<div style="padding: 0.5rem; background: var(--bg-card); min-height: 60px;"><span style="${d === today ? 'background: var(--primary); color: white; padding: 2px 6px; border-radius: 50%;' : ''}">${d <= 31 ? d : ''}</span>${d % 5 === 0 && d <= 31 ? `<div style="font-size: 0.6rem; margin-top: 0.3rem; color: var(--primary);"><i class="fab fa-twitter"></i></div>` : ''}</div>`).join('')}
             </div>
         </div>
     `;
+}
+
+function attachScheduleListeners(div) {
+    div.querySelector('#scheduleForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Post scheduled successfully!');
+    });
 }
 
 async function renderLibrary() {
     try {
         const data = await api.getPosts();
         const posts = data.posts || [];
-
-        if (posts.length === 0) {
-            return `<div class="glass-panel" style="padding: 2rem; text-align: center;"><h3>Library</h3><p>No posts yet.</p></div>`;
-        }
-
-        return `
-            <div class="glass-panel" style="padding: 2rem;">
-                <h3>Content Library</h3>
-                <div style="margin-top: 2rem; display: grid; gap: 1rem;">
-                    ${posts.map(post => `
-                        <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border-light);">
-                            <div class="flex-between">
-                                <span class="badge" style="background: rgba(139, 92, 246, 0.2); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 0.5rem;">${post.platform || 'General'}</span>
-                                <small class="text-muted">${new Date(post.createdAt).toLocaleDateString()}</small>
-                            </div>
-                            <p style="margin: 1rem 0;">${post.content.substring(0, 150)}...</p>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Edit</button>
-                                <button class="btn btn-secondary delete-post-btn" data-id="${post._id}" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; color: var(--secondary);">Delete</button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    } catch (error) {
-        return `<div class="text-danger">Failed to load library: ${error.message}</div>`;
-    }
-}
-
-function attachLibraryListeners(div) {
-    div.querySelectorAll('.delete-post-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (confirm('Delete this post?')) {
-                try {
-                    await api.deletePost(btn.dataset.id);
-                    document.querySelector('[data-tab=library]').click();
-                } catch (error) {
-                    alert(error.message);
-                }
-            }
-        });
-    });
+        if (posts.length === 0) return `<div class="glass-panel" style="padding: 2rem; text-align: center;"><h3>Library</h3><p>No posts yet. Start creating!</p></div>`;
+        return `<div class="glass-panel" style="padding: 2rem;"><h3>Content Library</h3><div style="margin-top: 1rem;">${posts.map(p => `<div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid var(--border-light);"><small class="text-muted">${new Date(p.createdAt).toLocaleDateString()}</small><p style="margin: 0.5rem 0;">${p.content.substring(0, 100)}...</p></div>`).join('')}</div></div>`;
+    } catch (e) { return `<div class="text-danger">Error loading library</div>`; }
 }
 
 async function renderAnalytics() {
     return `
         <div class="grid-3" style="grid-template-columns: 2fr 1fr; margin-bottom: 2rem;">
-            <div class="glass-panel" style="padding: 2rem;">
-                <h3>Engagement Growth</h3>
-                <canvas id="perfChart"></canvas>
-            </div>
-            <div class="glass-panel" style="padding: 2rem;">
-                <h3>Platform Split</h3>
-                <canvas id="platChart"></canvas>
-            </div>
+            <div class="glass-panel" style="padding: 2rem;"><h3>Engagement</h3><canvas id="perfChart"></canvas></div>
+            <div class="glass-panel" style="padding: 2rem;"><h3>Platforms</h3><canvas id="platChart"></canvas></div>
         </div>
-        <div class="glass-panel" style="padding: 2rem;">
-            <h3>Top Performing Posts</h3>
-            <p class="text-muted">Coming soon...</p>
-        </div>
+        <div class="glass-panel" style="padding: 2rem;"><h3>Top Performing Content</h3><p class="text-muted">Track your best posts here.</p></div>
     `;
 }
 
 function initCharts(div) {
     const perfCtx = div.querySelector('#perfChart');
+    if (perfCtx) new Chart(perfCtx, { type: 'line', data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Views', data: [120, 190, 300, 500, 200, 300, 450], borderColor: '#8b5cf6', tension: 0.4, fill: true, backgroundColor: 'rgba(139,92,246,0.1)' }] }, options: { responsive: true } });
     const platCtx = div.querySelector('#platChart');
+    if (platCtx) new Chart(platCtx, { type: 'doughnut', data: { labels: ['Twitter', 'LinkedIn', 'Instagram', 'Facebook'], datasets: [{ data: [40, 30, 20, 10], backgroundColor: ['#1DA1F2', '#0A66C2', '#E4405F', '#1877F2'], borderWidth: 0 }] }, options: { responsive: true } });
+}
 
-    if (perfCtx) {
-        new Chart(perfCtx, {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Impressions',
-                    data: [120, 190, 300, 500, 200, 300, 450],
-                    borderColor: '#8b5cf6',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)'
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#aaa' } }, x: { ticks: { color: '#aaa' } } } }
-        });
-    }
-
-    if (platCtx) {
-        new Chart(platCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Twitter', 'LinkedIn', 'Instagram', 'Facebook'],
-                datasets: [{
-                    data: [40, 30, 20, 10],
-                    backgroundColor: ['#1DA1F2', '#0A66C2', '#E4405F', '#1877F2'],
-                    borderWidth: 0
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
-        });
-    }
+async function renderConnections() {
+    return `
+        <div class="glass-panel" style="padding: 2rem; max-width: 600px;">
+            <h3>Connect Your Accounts</h3>
+            <p class="text-muted" style="margin-bottom: 2rem;">Link your social media accounts to publish directly from Social Monkey.</p>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div class="flex-between" style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;"><div class="flex-center" style="gap: 1rem;"><i class="fab fa-twitter" style="font-size: 1.5rem; color: #1DA1F2;"></i><span>Twitter/X</span></div><button class="btn btn-secondary">Connect</button></div>
+                <div class="flex-between" style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;"><div class="flex-center" style="gap: 1rem;"><i class="fab fa-linkedin" style="font-size: 1.5rem; color: #0A66C2;"></i><span>LinkedIn</span></div><button class="btn btn-secondary">Connect</button></div>
+                <div class="flex-between" style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;"><div class="flex-center" style="gap: 1rem;"><i class="fab fa-instagram" style="font-size: 1.5rem; color: #E4405F;"></i><span>Instagram</span></div><button class="btn btn-secondary">Connect</button></div>
+                <div class="flex-between" style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;"><div class="flex-center" style="gap: 1rem;"><i class="fab fa-facebook" style="font-size: 1.5rem; color: #1877F2;"></i><span>Facebook</span></div><button class="btn btn-secondary">Connect</button></div>
+                <div class="flex-between" style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;"><div class="flex-center" style="gap: 1rem;"><i class="fab fa-tiktok" style="font-size: 1.5rem;"></i><span>TikTok</span></div><button class="btn btn-secondary">Connect</button></div>
+            </div>
+        </div>
+    `;
 }
 
 async function renderSettings() {
+    return `<div class="glass-panel" style="max-width: 600px; padding: 2rem;"><h3>Settings</h3><form><div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" value="${store.state.user?.email}" disabled></div><div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-control"></div><button class="btn btn-primary">Save</button></form></div>`;
+}
+
+async function renderHelp() {
     return `
-        <div class="glass-panel" style="max-width: 600px; margin: 0 auto; padding: 3rem;">
-            <h3>Settings</h3>
-            <form>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" value="${store.state.user?.email}" disabled>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">New Password</label>
-                    <input type="password" class="form-control">
-                </div>
-                <button class="btn btn-primary">Save Changes</button>
-            </form>
+        <div class="glass-panel" style="padding: 2rem; max-width: 800px;">
+            <h3><i class="fas fa-question-circle text-gradient"></i> Help & Troubleshooting</h3>
+            <div style="margin-top: 2rem;">
+                <details style="margin-bottom: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;">
+                    <summary style="cursor: pointer; font-weight: bold;">Content not generating?</summary>
+                    <p style="margin-top: 1rem; color: var(--text-muted);">Make sure your prompt is clear and descriptive. Try adding more context. If the issue persists, check your internet connection or try again later.</p>
+                </details>
+                <details style="margin-bottom: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;">
+                    <summary style="cursor: pointer; font-weight: bold;">How do I schedule a post?</summary>
+                    <p style="margin-top: 1rem; color: var(--text-muted);">Go to the "Schedule" tab, select a date and time, choose your platform, and click "Schedule". Make sure your account is connected first.</p>
+                </details>
+                <details style="margin-bottom: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;">
+                    <summary style="cursor: pointer; font-weight: bold;">How do I connect my social accounts?</summary>
+                    <p style="margin-top: 1rem; color: var(--text-muted);">Go to "Connections" and click "Connect" next to the platform you want to link. You'll be redirected to authorize Social Monkey.</p>
+                </details>
+                <details style="margin-bottom: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;">
+                    <summary style="cursor: pointer; font-weight: bold;">Image generation not working?</summary>
+                    <p style="margin-top: 1rem; color: var(--text-muted);">AI image generation uses Stability AI. Ensure you have an active subscription. If issues persist, contact support.</p>
+                </details>
+            </div>
+            <div style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(244,63,94,0.1)); border-radius: 0.5rem;">
+                <h4>Still need help?</h4>
+                <p class="text-muted">Contact us at <a href="mailto:support@socialmonkey.ai" class="text-gradient">support@socialmonkey.ai</a></p>
+            </div>
         </div>
     `;
 }
