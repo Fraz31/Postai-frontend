@@ -203,62 +203,93 @@ async function renderOverview() {
 
 async function renderCreate() {
     return `
-        <div class="generator-card" style="max-width: 800px; margin: 0 auto;">
-            <div style="margin-bottom: 2rem;">
+        <div class="generator-card" style="max-width: 900px; margin: 0 auto;">
+            <div style="margin-bottom: 2rem; text-align: center;">
                 <h3><i class="fas fa-wand-magic-sparkles text-gradient" style="margin-right: 0.5rem;"></i> AI Content Generator</h3>
-                <p style="margin: 0;">Create engaging content for any platform in seconds</p>
+                <p style="margin: 0; color: var(--text-muted);">Create engaging content for any platform in seconds</p>
             </div>
-            <form id="createForm">
-                <div class="form-group">
-                    <label class="form-label">Content Type</label>
-                    <select id="contentType" class="form-control">
-                        <option value="post">Social Media Post</option>
-                        <option value="thread">Twitter/X Thread</option>
-                        <option value="carousel">Instagram Carousel</option>
-                        <option value="reel">Instagram/TikTok Reel Script</option>
-                        <option value="article">LinkedIn Article</option>
-                        <option value="story">Story (IG/FB)</option>
-                        <option value="caption">Caption Only</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">What's your post about?</label>
-                    <textarea id="prompt" class="form-control" rows="4" required placeholder="Describe your topic, key points, or paste content to repurpose..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Target Platforms</label>
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;"><input type="checkbox" value="twitter" checked style="accent-color: var(--primary);"> <i class="fab fa-twitter" style="color: #1DA1F2;"></i> Twitter/X</label>
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;"><input type="checkbox" value="linkedin" style="accent-color: var(--primary);"> <i class="fab fa-linkedin" style="color: #0A66C2;"></i> LinkedIn</label>
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;"><input type="checkbox" value="instagram" style="accent-color: var(--primary);"> <i class="fab fa-instagram" style="color: #E4405F;"></i> Instagram</label>
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;"><input type="checkbox" value="facebook" style="accent-color: var(--primary);"> <i class="fab fa-facebook" style="color: #1877F2;"></i> Facebook</label>
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;"><input type="checkbox" value="tiktok" style="accent-color: var(--primary);"> <i class="fab fa-tiktok"></i> TikTok</label>
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;"><input type="checkbox" value="threads" style="accent-color: var(--primary);"> <i class="fab fa-threads"></i> Threads</label>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+                <!-- Form Side -->
+                <form id="createForm">
+                    <div class="form-group">
+                        <label class="form-label">Content Type</label>
+                        <select id="contentType" class="form-control">
+                            <option value="post">Social Media Post</option>
+                            <option value="thread">Twitter/X Thread</option>
+                            <option value="carousel">Instagram Carousel</option>
+                            <option value="article">LinkedIn Article</option>
+                            <option value="caption">Caption Only</option>
+                        </select>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                        <input type="checkbox" id="generateImage" style="accent-color: var(--primary); width: 18px; height: 18px;">
-                        <span class="form-label" style="margin: 0;">Generate AI Image</span>
-                        <span class="badge" style="margin: 0; padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-sparkles"></i> Beta</span>
-                    </label>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;"><i class="fas fa-wand-magic-sparkles"></i> Generate Content</button>
-            </form>
-            <div id="result" style="display: none; margin-top: 2rem;" class="glass-panel" style="padding: 2rem;">
-                <div class="flex-between" style="margin-bottom: 1rem;">
-                    <h4><i class="fas fa-check-circle" style="color: var(--success); margin-right: 0.5rem;"></i> Generated Result</h4>
-                </div>
-                <pre id="resultText" style="white-space: pre-wrap; padding: 1.5rem; background: rgba(0,0,0,0.3); border-radius: 0.75rem; border: 1px solid var(--border-light);"></pre>
-                <div id="imageResult" style="display: none; margin: 1rem 0; text-align: center;">
-                    <p style="margin-bottom: 0.5rem; font-size: 0.9rem;">AI Generated Image:</p>
-                    <div style="width: 100%; height: 250px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; border-radius: 0.75rem; border: 1px solid var(--border-light);"><i class="fas fa-image" style="font-size: 2rem; color: var(--text-muted);"></i></div>
-                </div>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem;">
-                    <button id="copyBtn" class="btn btn-secondary"><i class="fas fa-copy"></i> Copy</button>
-                    <button id="saveBtn" class="btn btn-primary"><i class="fas fa-save"></i> Save to Library</button>
-                    <button id="scheduleBtn" class="btn btn-secondary"><i class="fas fa-calendar-plus"></i> Schedule</button>
-                    <button id="repurposeBtn" class="btn btn-secondary"><i class="fas fa-sync"></i> Repurpose</button>
+                    <div class="form-group">
+                        <label class="form-label">Topic or Context</label>
+                        <textarea id="prompt" class="form-control" rows="5" required placeholder="e.g., Launching our new AI feature that helps users write faster..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tone</label>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <label class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;"><input type="radio" name="tone" value="professional" checked style="display: none;"> Professional</label>
+                            <label class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;"><input type="radio" name="tone" value="casual" style="display: none;"> Casual</label>
+                            <label class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;"><input type="radio" name="tone" value="excited" style="display: none;"> Excited</label>
+                            <label class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;"><input type="radio" name="tone" value="witty" style="display: none;"> Witty</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                            <input type="checkbox" id="generateImage" style="accent-color: var(--primary); width: 18px; height: 18px;">
+                            <span class="form-label" style="margin: 0;">Generate AI Image</span>
+                            <span class="badge" style="margin: 0; padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-sparkles"></i> Beta</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;"><i class="fas fa-wand-magic-sparkles"></i> Generate Magic</button>
+                </form>
+
+                <!-- Preview Side -->
+                <div>
+                    <div id="emptyState" style="text-align: center; padding: 3rem; border: 2px dashed var(--border-light); border-radius: 1rem; color: var(--text-muted);">
+                        <i class="fas fa-magic" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>Your generated content will appear here</p>
+                    </div>
+
+                    <div id="result" style="display: none;">
+                        <div class="glass-panel" style="padding: 0; overflow: hidden; border: 1px solid var(--border-light);">
+                            <!-- Mock Social Header -->
+                            <div style="padding: 1rem; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary));"></div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">Social Monkey</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">Just now • <i class="fas fa-globe"></i></div>
+                                </div>
+                                <i class="fas fa-ellipsis-h" style="margin-left: auto; color: var(--text-muted);"></i>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div style="padding: 1.5rem;">
+                                <div id="resultText" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; color: var(--text-main);"></div>
+                                <div id="imageResult" style="display: none; margin-top: 1rem; border-radius: 0.5rem; overflow: hidden;">
+                                    <div style="width: 100%; height: 200px; background: linear-gradient(45deg, #1a1a2e, #16213e); display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-image" style="font-size: 2rem; color: rgba(255,255,255,0.2);"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mock Social Actions -->
+                            <div style="padding: 0.75rem 1.5rem; border-top: 1px solid var(--border-light); display: flex; justify-content: space-between; color: var(--text-muted); font-size: 1.2rem;">
+                                <i class="far fa-heart"></i>
+                                <i class="far fa-comment"></i>
+                                <i class="fas fa-retweet"></i>
+                                <i class="far fa-share-square"></i>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
+                            <button id="saveBtn" class="btn btn-primary" style="justify-content: center;"><i class="fas fa-save"></i> Save Draft</button>
+                            <button id="scheduleBtn" class="btn btn-secondary" style="justify-content: center;"><i class="fas fa-calendar-plus"></i> Schedule</button>
+                            <button id="copyBtn" class="btn btn-secondary" style="grid-column: span 2; justify-content: center;"><i class="fas fa-copy"></i> Copy Text</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -270,53 +301,93 @@ function attachCreateListeners(div) {
     if (!form) return;
     let lastResult = null;
 
+    // Tone selection
+    div.querySelectorAll('input[name="tone"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            div.querySelectorAll('.btn-secondary').forEach(btn => {
+                if (btn.querySelector('input[name="tone"]')) {
+                    btn.classList.remove('active');
+                    btn.style.borderColor = 'var(--border-light)';
+                }
+            });
+            e.target.closest('.btn').classList.add('active');
+            e.target.closest('.btn').style.borderColor = 'var(--primary)';
+        });
+    });
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const prompt = div.querySelector('#prompt').value;
         const type = div.querySelector('#contentType').value;
-        const platforms = Array.from(div.querySelectorAll('input[type=checkbox]:checked:not(#generateImage)')).map(cb => cb.value);
         const genImage = div.querySelector('#generateImage').checked;
         const btn = form.querySelector('button[type=submit]');
 
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Magic...';
         btn.disabled = true;
+        div.querySelector('#emptyState').style.opacity = '0.5';
 
         try {
-            const res = await api.generate({ prompt, contentType: type, platforms });
+            // Simulate network delay for realism if it's too fast
+            const start = Date.now();
+            const res = await api.generate({ prompt, contentType: type });
+            const elapsed = Date.now() - start;
+            if (elapsed < 1000) await new Promise(r => setTimeout(r, 1000 - elapsed));
+
             lastResult = res;
+            div.querySelector('#emptyState').style.display = 'none';
             div.querySelector('#result').style.display = 'block';
-            div.querySelector('#resultText').textContent = res.content;
+
+            // Typewriter effect for text
+            const resultText = div.querySelector('#resultText');
+            resultText.textContent = '';
+            let i = 0;
+            const text = res.content || res.text; // Handle both formats
+            const speed = 10;
+
+            function typeWriter() {
+                if (i < text.length) {
+                    resultText.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, speed);
+                }
+            }
+            typeWriter();
+
             div.querySelector('#imageResult').style.display = genImage ? 'block' : 'none';
         } catch (error) {
             alert(error.message);
+            div.querySelector('#emptyState').style.opacity = '1';
         } finally {
-            btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Content';
+            btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Magic';
             btn.disabled = false;
         }
     });
 
     div.querySelector('#copyBtn').addEventListener('click', () => {
         if (lastResult) {
-            navigator.clipboard.writeText(lastResult.content);
+            navigator.clipboard.writeText(lastResult.content || lastResult.text);
             const btn = div.querySelector('#copyBtn');
+            const original = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-            setTimeout(() => btn.innerHTML = '<i class="fas fa-copy"></i> Copy', 2000);
+            setTimeout(() => btn.innerHTML = original, 2000);
         }
     });
+
     div.querySelector('#saveBtn').addEventListener('click', async () => {
         if (lastResult) {
             try {
-                await api.createPost({ content: lastResult.content, platform: 'twitter', status: 'draft' });
                 const btn = div.querySelector('#saveBtn');
-                btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-                setTimeout(() => btn.innerHTML = '<i class="fas fa-save"></i> Save to Library', 2000);
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                await api.createPost({ content: lastResult.content || lastResult.text, platform: 'twitter', status: 'draft' });
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved to Library';
+                setTimeout(() => btn.innerHTML = '<i class="fas fa-save"></i> Save Draft', 2000);
             } catch (e) {
                 alert(e.message);
             }
         }
     });
+
     div.querySelector('#scheduleBtn').addEventListener('click', () => { document.querySelector('[data-tab=schedule]').click(); });
-    div.querySelector('#repurposeBtn').addEventListener('click', () => { alert('Repurposing: Automatically adapt this content for other platforms. Coming soon!'); });
 }
 
 async function renderSchedule() {
@@ -331,30 +402,50 @@ async function renderSchedule() {
     for (let i = 1; i <= daysInMonth; i++) days.push(i);
     while (days.length < 42) days.push('');
 
+    // Mock events for demo if no real events
+    const demoEvents = {
+        [currentDay]: [{ type: 'twitter', count: 2 }],
+        [currentDay + 2]: [{ type: 'linkedin', count: 1 }],
+        [currentDay + 5]: [{ type: 'instagram', count: 1 }, { type: 'twitter', count: 1 }]
+    };
+
     return `
-        <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
-            <h3><i class="fas fa-calendar-plus text-gradient" style="margin-right: 0.5rem;"></i> Schedule a Post</h3>
-            <form id="scheduleForm" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end; margin-top: 1.5rem;">
-                <div class="form-group" style="margin: 0;"><label class="form-label">Date</label><input type="date" class="form-control" id="scheduleDate" required></div>
-                <div class="form-group" style="margin: 0;"><label class="form-label">Time</label><input type="time" class="form-control" id="scheduleTime" required></div>
-                <div class="form-group" style="margin: 0;"><label class="form-label">Platform</label><select class="form-control" id="schedulePlatform"><option>Twitter</option><option>LinkedIn</option><option>Instagram</option><option>Facebook</option></select></div>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-calendar-check"></i> Schedule</button>
-            </form>
-        </div>
-        <div class="glass-panel" style="padding: 2rem;">
-            <div class="flex-between" style="margin-bottom: 1.5rem;">
-                <h3><i class="fas fa-calendar text-gradient" style="margin-right: 0.5rem;"></i> ${currentMonth} ${today.getFullYear()}</h3>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem;"><i class="fas fa-chevron-left"></i></button>
-                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem;"><i class="fas fa-chevron-right"></i></button>
+        <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 2rem;">
+            <div class="glass-panel" style="padding: 2rem;">
+                <div class="flex-between" style="margin-bottom: 1.5rem;">
+                    <h3><i class="fas fa-calendar text-gradient" style="margin-right: 0.5rem;"></i> ${currentMonth} ${today.getFullYear()}</h3>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-secondary" style="padding: 0.5rem 1rem;"><i class="fas fa-chevron-left"></i></button>
+                        <button class="btn btn-secondary" style="padding: 0.5rem 1rem;"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-light); border: 1px solid var(--border-light); border-radius: 1rem; overflow: hidden;">
+                    ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<div style="padding: 0.75rem; background: rgba(139,92,246,0.1); text-align: center; font-weight: 600; font-size: 0.85rem;">${d}</div>`).join('')}
+                    ${days.map(d => {
+        const events = demoEvents[d] || [];
+        return `<div style="padding: 0.5rem; background: var(--bg-card); min-height: 100px; ${d === currentDay ? 'background: rgba(139,92,246,0.05);' : ''}">
+                            ${d ? `<span style="${d === currentDay ? 'background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 4px 8px; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;' : 'color: var(--text-muted);'} font-size: 0.85rem;">${d}</span>` : ''}
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.5rem;">
+                                ${events.map(e => `
+                                    <div style="padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.05); border-radius: 0.25rem; font-size: 0.7rem; display: flex; align-items: center; gap: 0.25rem;">
+                                        <i class="fab fa-${e.type}" style="color: ${e.type === 'twitter' ? '#1DA1F2' : e.type === 'linkedin' ? '#0A66C2' : '#E4405F'};"></i>
+                                        <span>${e.count} post${e.count > 1 ? 's' : ''}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+    }).join('')}
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-light); border: 1px solid var(--border-light); border-radius: 1rem; overflow: hidden;">
-                ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<div style="padding: 0.75rem; background: rgba(139,92,246,0.1); text-align: center; font-weight: 600; font-size: 0.85rem;">${d}</div>`).join('')}
-                ${days.map(d => `<div style="padding: 0.5rem; background: var(--bg-card); min-height: 80px; ${d === currentDay ? 'background: rgba(139,92,246,0.1);' : ''}">
-                    ${d ? `<span style="${d === currentDay ? 'background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 4px 8px; border-radius: 50%;' : ''}">${d}</span>` : ''}
-                    ${d && d % 5 === 0 ? `<div style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(29,161,242,0.2); border-radius: 0.25rem; font-size: 0.7rem;"><i class="fab fa-twitter" style="color: #1DA1F2;"></i> 2 posts</div>` : ''}
-                </div>`).join('')}
+
+            <div class="glass-panel" style="padding: 2rem; height: fit-content;">
+                <h3><i class="fas fa-calendar-plus text-gradient" style="margin-right: 0.5rem;"></i> Quick Schedule</h3>
+                <form id="scheduleForm" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
+                    <div class="form-group" style="margin: 0;"><label class="form-label">Date</label><input type="date" class="form-control" id="scheduleDate" required></div>
+                    <div class="form-group" style="margin: 0;"><label class="form-label">Time</label><input type="time" class="form-control" id="scheduleTime" required></div>
+                    <div class="form-group" style="margin: 0;"><label class="form-label">Platform</label><select class="form-control" id="schedulePlatform"><option>Twitter</option><option>LinkedIn</option><option>Instagram</option><option>Facebook</option></select></div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;"><i class="fas fa-calendar-check"></i> Schedule Post</button>
+                </form>
             </div>
         </div>
     `;
