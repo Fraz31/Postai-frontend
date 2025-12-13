@@ -124,6 +124,13 @@ class ApiClient {
         return this.request('/auth/me', { method: 'GET' });
     }
 
+    async saveConnection(platform, token) {
+        return this.request('/auth/connection', {
+            method: 'POST',
+            body: JSON.stringify({ platform, token })
+        });
+    }
+
     // Content generation
     async generate(payload) {
         return this.request('/generate', {

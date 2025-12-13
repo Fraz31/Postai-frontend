@@ -321,15 +321,24 @@ function attachCreateListeners(div) {
         const genImage = div.querySelector('#generateImage').checked;
         const btn = form.querySelector('button[type=submit]');
 
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Magic...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Weaving Magic...';
         btn.disabled = true;
-        div.querySelector('#emptyState').style.opacity = '0.5';
+
+        const emptyState = div.querySelector('#emptyState');
+        emptyState.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <div class="spinner" style="margin: 0 auto 1rem; width: 50px; height: 50px; border-width: 4px; border-top-color: var(--accent);"></div>
+                <p class="text-gradient-animated" style="font-weight: 600; font-size: 1.1rem;">Consulting the Cosmic Intelligence...</p>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">Crafting your ${type}...</p>
+            </div>
+        `;
+        emptyState.style.opacity = '1';
 
         try {
             const res = await api.generate({ prompt, contentType: type, generateImage: genImage });
 
             lastResult = res;
-            div.querySelector('#emptyState').style.display = 'none';
+            emptyState.style.display = 'none';
             div.querySelector('#result').style.display = 'block';
 
             // Typewriter effect for text
@@ -356,7 +365,11 @@ function attachCreateListeners(div) {
             }
         } catch (error) {
             alert(error.message);
-            div.querySelector('#emptyState').style.opacity = '1';
+            emptyState.innerHTML = `
+                <i class="fas fa-magic" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>Your generated content will appear here</p>
+            `;
+            emptyState.style.opacity = '1';
         } finally {
             btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Magic';
             btn.disabled = false;
@@ -605,6 +618,10 @@ async function renderConnections() {
         { id: 'tiktok', name: 'TikTok', icon: 'fab fa-tiktok', color: '#ffffff', connected: false, placeholder: 'Enter Access Token' },
     ];
 
+    // In a real app, we would fetch connected status from backend
+    // const { user } = store.state;
+    // const connected = user.socialAccounts || {};
+
     return `
         <div class="glass-panel" style="padding: 2rem; max-width: 700px;">
             <h3><i class="fas fa-plug text-gradient" style="margin-right: 0.5rem;"></i> Connected Accounts</h3>
@@ -672,9 +689,7 @@ function attachConnectionListeners(div) {
             btnEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
             try {
-                // Simulate API call to save token
-                await new Promise(r => setTimeout(r, 1000));
-                // In real app: await api.saveConnection(id, token);
+                await api.saveConnection(id, token);
 
                 div.querySelector(`#form-${id}`).style.display = 'none';
                 const card = div.querySelector(`#card-${id}`);
@@ -683,6 +698,12 @@ function attachConnectionListeners(div) {
                 card.querySelector('.toggle-connect').style.display = 'inline-flex';
                 card.querySelector('.toggle-connect').innerHTML = '<i class="fas fa-cog"></i> Manage';
                 card.querySelector('.toggle-connect').classList.replace('btn-primary', 'btn-ghost');
+
+                // Update user state locally if needed
+                if (store.state.user && store.state.user.socialAccounts) {
+                    if (!store.state.user.socialAccounts[id]) store.state.user.socialAccounts[id] = {};
+                    store.state.user.socialAccounts[id].connected = true;
+                }
 
                 alert(`Successfully connected to ${id}!`);
             } catch (err) {
