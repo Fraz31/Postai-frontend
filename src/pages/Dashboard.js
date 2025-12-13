@@ -105,6 +105,7 @@ export function Dashboard() {
             if (tabName === 'create') attachCreateListeners(div);
             if (tabName === 'analytics') initCharts(div);
             if (tabName === 'schedule') attachScheduleListeners(div);
+            if (tabName === 'connections') attachConnectionListeners(div);
         } catch (error) {
             contentContainer.innerHTML = `<div class="glass-panel" style="padding: 2rem; text-align: center; color: var(--error);"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i><p>Error: ${error.message}</p></div>`;
         }
@@ -239,7 +240,7 @@ async function renderCreate() {
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
                             <input type="checkbox" id="generateImage" style="accent-color: var(--primary); width: 18px; height: 18px;">
                             <span class="form-label" style="margin: 0;">Generate AI Image</span>
-                            <span class="badge" style="margin: 0; padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-sparkles"></i> Beta</span>
+                            <span class="badge" style="margin: 0; padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-sparkles"></i> DALL-E 3</span>
                         </label>
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;"><i class="fas fa-wand-magic-sparkles"></i> Generate Magic</button>
@@ -268,9 +269,7 @@ async function renderCreate() {
                             <div style="padding: 1.5rem;">
                                 <div id="resultText" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; color: var(--text-main);"></div>
                                 <div id="imageResult" style="display: none; margin-top: 1rem; border-radius: 0.5rem; overflow: hidden;">
-                                    <div style="width: 100%; height: 200px; background: linear-gradient(45deg, #1a1a2e, #16213e); display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-image" style="font-size: 2rem; color: rgba(255,255,255,0.2);"></i>
-                                    </div>
+                                    <img id="generatedImage" src="" style="width: 100%; height: auto; display: block;" alt="AI Generated">
                                 </div>
                             </div>
 
@@ -327,11 +326,7 @@ function attachCreateListeners(div) {
         div.querySelector('#emptyState').style.opacity = '0.5';
 
         try {
-            // Simulate network delay for realism if it's too fast
-            const start = Date.now();
-            const res = await api.generate({ prompt, contentType: type });
-            const elapsed = Date.now() - start;
-            if (elapsed < 1000) await new Promise(r => setTimeout(r, 1000 - elapsed));
+            const res = await api.generate({ prompt, contentType: type, generateImage: genImage });
 
             lastResult = res;
             div.querySelector('#emptyState').style.display = 'none';
@@ -341,7 +336,7 @@ function attachCreateListeners(div) {
             const resultText = div.querySelector('#resultText');
             resultText.textContent = '';
             let i = 0;
-            const text = res.content || res.text; // Handle both formats
+            const text = res.content || res.text;
             const speed = 10;
 
             function typeWriter() {
@@ -353,7 +348,12 @@ function attachCreateListeners(div) {
             }
             typeWriter();
 
-            div.querySelector('#imageResult').style.display = genImage ? 'block' : 'none';
+            if (res.meta && res.meta.imageUrl) {
+                div.querySelector('#imageResult').style.display = 'block';
+                div.querySelector('#generatedImage').src = res.meta.imageUrl;
+            } else {
+                div.querySelector('#imageResult').style.display = 'none';
+            }
         } catch (error) {
             alert(error.message);
             div.querySelector('#emptyState').style.opacity = '1';
@@ -598,36 +598,100 @@ function initCharts(div) {
 
 async function renderConnections() {
     const platforms = [
-        { name: 'Twitter/X', icon: 'fab fa-twitter', color: '#1DA1F2', connected: true },
-        { name: 'LinkedIn', icon: 'fab fa-linkedin', color: '#0A66C2', connected: true },
-        { name: 'Instagram', icon: 'fab fa-instagram', color: '#E4405F', connected: false },
-        { name: 'Facebook', icon: 'fab fa-facebook', color: '#1877F2', connected: false },
-        { name: 'TikTok', icon: 'fab fa-tiktok', color: '#ffffff', connected: false },
-        { name: 'Threads', icon: 'fab fa-threads', color: '#ffffff', connected: false },
+        { id: 'twitter', name: 'Twitter/X', icon: 'fab fa-twitter', color: '#1DA1F2', connected: false, placeholder: 'Enter API Key / Bearer Token' },
+        { id: 'linkedin', name: 'LinkedIn', icon: 'fab fa-linkedin', color: '#0A66C2', connected: false, placeholder: 'Enter Access Token' },
+        { id: 'instagram', name: 'Instagram', icon: 'fab fa-instagram', color: '#E4405F', connected: false, placeholder: 'Enter Access Token' },
+        { id: 'facebook', name: 'Facebook', icon: 'fab fa-facebook', color: '#1877F2', connected: false, placeholder: 'Enter Page Access Token' },
+        { id: 'tiktok', name: 'TikTok', icon: 'fab fa-tiktok', color: '#ffffff', connected: false, placeholder: 'Enter Access Token' },
     ];
 
     return `
         <div class="glass-panel" style="padding: 2rem; max-width: 700px;">
             <h3><i class="fas fa-plug text-gradient" style="margin-right: 0.5rem;"></i> Connected Accounts</h3>
-            <p style="margin-bottom: 2rem;">Link your social media accounts to publish directly from Social Monkey.</p>
+            <p style="margin-bottom: 2rem;">Link your social media accounts to publish directly from Social Monkey. <br><small class="text-muted">For this MVP, please provide your Access Tokens directly.</small></p>
+            
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 ${platforms.map(p => `
-                    <div class="flex-between" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 0.75rem; border: 1px solid ${p.connected ? 'var(--success)' : 'var(--border-light)'};">
-                        <div class="flex-center" style="gap: 1rem;">
-                            <i class="${p.icon}" style="font-size: 1.75rem; color: ${p.color};"></i>
-                            <div>
-                                <span style="font-weight: 600;">${p.name}</span>
-                                ${p.connected ? '<span style="display: block; font-size: 0.8rem; color: var(--success);"><i class="fas fa-check-circle"></i> Connected</span>' : ''}
+                    <div class="connection-card" id="card-${p.id}" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 0.75rem; border: 1px solid var(--border-light);">
+                        <div class="flex-between">
+                            <div class="flex-center" style="gap: 1rem;">
+                                <i class="${p.icon}" style="font-size: 1.75rem; color: ${p.color};"></i>
+                                <div>
+                                    <span style="font-weight: 600;">${p.name}</span>
+                                    <span class="status-text" style="display: block; font-size: 0.8rem; color: var(--text-muted);">Not Connected</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary toggle-connect" data-id="${p.id}" style="padding: 0.5rem 1.25rem;">
+                                <i class="fas fa-plus"></i> Connect
+                            </button>
+                        </div>
+                        
+                        <div class="connect-form" id="form-${p.id}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                            <div class="form-group">
+                                <label class="form-label" style="font-size: 0.85rem;">${p.placeholder}</label>
+                                <input type="password" class="form-control" id="input-${p.id}" placeholder="Paste your token here...">
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                <button class="btn btn-ghost cancel-connect" data-id="${p.id}" style="font-size: 0.9rem;">Cancel</button>
+                                <button class="btn btn-primary save-connect" data-id="${p.id}" style="font-size: 0.9rem;">Save Token</button>
                             </div>
                         </div>
-                        <button class="btn ${p.connected ? 'btn-ghost' : 'btn-primary'}" style="padding: 0.5rem 1.25rem;">
-                            ${p.connected ? '<i class="fas fa-cog"></i> Manage' : '<i class="fas fa-plus"></i> Connect'}
-                        </button>
                     </div>
                 `).join('')}
             </div>
         </div>
     `;
+}
+
+function attachConnectionListeners(div) {
+    div.querySelectorAll('.toggle-connect').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.closest('button').dataset.id;
+            div.querySelector(`#form-${id}`).style.display = 'block';
+            e.target.closest('button').style.display = 'none';
+        });
+    });
+
+    div.querySelectorAll('.cancel-connect').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.closest('button').dataset.id;
+            div.querySelector(`#form-${id}`).style.display = 'none';
+            div.querySelector(`#card-${id} .toggle-connect`).style.display = 'inline-flex';
+        });
+    });
+
+    div.querySelectorAll('.save-connect').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.target.closest('button').dataset.id;
+            const token = div.querySelector(`#input-${id}`).value;
+
+            if (!token) return alert('Please enter a token');
+
+            const btnEl = e.target.closest('button');
+            const originalText = btnEl.innerHTML;
+            btnEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                // Simulate API call to save token
+                await new Promise(r => setTimeout(r, 1000));
+                // In real app: await api.saveConnection(id, token);
+
+                div.querySelector(`#form-${id}`).style.display = 'none';
+                const card = div.querySelector(`#card-${id}`);
+                card.style.borderColor = 'var(--success)';
+                card.querySelector('.status-text').innerHTML = '<span style="color: var(--success);"><i class="fas fa-check-circle"></i> Connected</span>';
+                card.querySelector('.toggle-connect').style.display = 'inline-flex';
+                card.querySelector('.toggle-connect').innerHTML = '<i class="fas fa-cog"></i> Manage';
+                card.querySelector('.toggle-connect').classList.replace('btn-primary', 'btn-ghost');
+
+                alert(`Successfully connected to ${id}!`);
+            } catch (err) {
+                alert('Failed to connect: ' + err.message);
+            } finally {
+                btnEl.innerHTML = originalText;
+            }
+        });
+    });
 }
 
 async function renderSettings() {
