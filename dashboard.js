@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initDashboard() {
     loadDashboardData();
     loadContentLibrary();
+    loadSubscriptionInfo();
     createCharts();
 
     // Set active tab from URL hash or default to overview
@@ -109,6 +110,76 @@ function loadContentLibrary() {
     }
 
     listEl.innerHTML = content.map((item, index) => renderContentItem(item, index)).join('');
+}
+
+async function loadSubscriptionInfo() {
+    try {
+        const token = localStorage.getItem('socialmonkey_token');
+        if (!token) return;
+
+        const API_BASE = window.API_BASE || 'https://postai-backend-z2yu.onrender.com';
+        const response = await fetch(`${API_BASE}/api/subscription/me`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            console.warn('Failed to load subscription info');
+            return;
+        }
+
+        const data = await response.json();
+        if (!data.success || !data.subscription) return;
+
+        const { plan, status, limits, dailyCredits } = data.subscription;
+
+        // Update Plan Name
+        const planNameEl = document.getElementById('currentPlanName');
+        if (planNameEl) {
+            const planEmoji = { starter: '🚀', pro: '🔥', business: '👑' };
+            planNameEl.textContent = `${planEmoji[plan] || ''} ${plan}`;
+        }
+
+        // Update Status
+        const statusEl = document.getElementById('subscriptionStatus');
+        if (statusEl) {
+            statusEl.textContent = status;
+            if (status === 'active') {
+                statusEl.style.background = 'rgba(0,255,136,0.2)';
+                statusEl.style.color = '#00ff88';
+            } else if (status === 'cancelled') {
+                statusEl.style.background = 'rgba(255,100,100,0.2)';
+                statusEl.style.color = '#ff6464';
+            }
+        }
+
+        // Update Usage
+        const usedPosts = dailyCredits?.used || 0;
+        const limitPosts = limits?.postsPerMonth || 50;
+        const isUnlimited = !Number.isFinite(limitPosts);
+
+        const postsUsedEl = document.getElementById('postsUsed');
+        if (postsUsedEl) {
+            postsUsedEl.textContent = isUnlimited ? `${usedPosts} / ∞` : `${usedPosts} / ${limitPosts}`;
+        }
+
+        const progressBar = document.getElementById('usageProgressBar');
+        if (progressBar && !isUnlimited) {
+            const percentage = Math.min((usedPosts / limitPosts) * 100, 100);
+            progressBar.style.width = `${percentage}%`;
+            if (percentage > 80) {
+                progressBar.style.background = 'linear-gradient(135deg, #ff6b6b, #ffa502)';
+            }
+        } else if (progressBar && isUnlimited) {
+            progressBar.style.width = '100%';
+            progressBar.style.background = 'linear-gradient(135deg, #00ff88, #00d4aa)';
+        }
+
+    } catch (err) {
+        console.error('Error loading subscription:', err);
+    }
 }
 
 function renderContentItem(item, index, compact = false) {

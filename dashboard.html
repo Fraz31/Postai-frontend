@@ -228,8 +228,54 @@
 
             <!-- TAB: SETTINGS -->
             <div id="tab-settings" class="dashboard-tab" style="display: none;">
-                <div class="glass-panel" style="max-width: 600px; margin: 0 auto; padding: 3rem;">
-                    <h3 style="margin-bottom: 2rem;">Profile Settings</h3>
+                <!-- Subscription Management -->
+                <div class="glass-panel" style="max-width: 600px; margin: 0 auto 2rem; padding: 2rem;">
+                    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-crown text-gradient"
+                            style="margin-right: 0.5rem;"></i>Subscription</h3>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">Current Plan</p>
+                            <h2 id="currentPlanName" style="margin: 0.25rem 0; text-transform: capitalize;">Starter</h2>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">Status</p>
+                            <span id="subscriptionStatus" class="badge"
+                                style="background: rgba(0,255,136,0.2); color: #00ff88;">Active</span>
+                        </div>
+                    </div>
+                    <div
+                        style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Posts Used This Month</span>
+                            <span id="postsUsed">0 / 50</span>
+                        </div>
+                        <div
+                            style="background: rgba(255,255,255,0.1); border-radius: 9999px; height: 8px; overflow: hidden;">
+                            <div id="usageProgressBar"
+                                style="background: var(--gradient-primary); height: 100%; width: 0%; transition: width 0.3s;">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <a href="https://customer.paddle.com" target="_blank" class="btn btn-secondary"
+                            style="flex: 1; text-align: center;">
+                            <i class="fas fa-external-link-alt" style="margin-right: 0.5rem;"></i>Manage Subscription
+                        </a>
+                        <a href="/#pricing" class="btn btn-primary" style="flex: 1; text-align: center;">
+                            <i class="fas fa-arrow-up" style="margin-right: 0.5rem;"></i>Upgrade Plan
+                        </a>
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 1rem; text-align: center;">
+                        <i class="fas fa-lock" style="margin-right: 0.25rem;"></i>
+                        Payments securely processed by Paddle
+                    </p>
+                </div>
+
+                <!-- Profile Settings -->
+                <div class="glass-panel" style="max-width: 600px; margin: 0 auto; padding: 2rem;">
+                    <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-user-cog"
+                            style="margin-right: 0.5rem;"></i>Profile Settings</h3>
                     <form id="settingsForm">
                         <div class="form-group">
                             <label class="form-label">Full Name</label>
@@ -239,6 +285,12 @@
                             <label class="form-label">Email Address</label>
                             <input type="email" class="form-control" value="hashim@example.com" id="settingsEmail"
                                 readonly style="opacity: 0.7; cursor: not-allowed;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">OpenAI API Key</label>
+                            <input type="password" class="form-control" id="settingsOpenaiKey" placeholder="sk-...">
+                            <small style="color: var(--text-muted);">Your API key is stored securely and used for
+                                content generation.</small>
                         </div>
                         <div class="form-group">
                             <label class="form-label">New Password</label>

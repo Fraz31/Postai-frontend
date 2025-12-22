@@ -611,6 +611,7 @@ function initCharts(div) {
 
 async function renderConnections() {
     const platforms = [
+        { id: 'openai', name: 'OpenAI API', icon: 'fas fa-robot', color: '#10a37f', connected: false, placeholder: 'sk-...' },
         { id: 'twitter', name: 'Twitter/X', icon: 'fab fa-twitter', color: '#1DA1F2', connected: false, placeholder: 'Enter API Key / Bearer Token' },
         { id: 'linkedin', name: 'LinkedIn', icon: 'fab fa-linkedin', color: '#0A66C2', connected: false, placeholder: 'Enter Access Token' },
         { id: 'instagram', name: 'Instagram', icon: 'fab fa-instagram', color: '#E4405F', connected: false, placeholder: 'Enter Access Token' },
@@ -700,9 +701,15 @@ function attachConnectionListeners(div) {
                 card.querySelector('.toggle-connect').classList.replace('btn-primary', 'btn-ghost');
 
                 // Update user state locally if needed
-                if (store.state.user && store.state.user.socialAccounts) {
-                    if (!store.state.user.socialAccounts[id]) store.state.user.socialAccounts[id] = {};
-                    store.state.user.socialAccounts[id].connected = true;
+                if (store.state.user) {
+                    if (id === 'openai') {
+                        if (!store.state.user.apiKeys) store.state.user.apiKeys = {};
+                        store.state.user.apiKeys.openai = token;
+                    } else {
+                        if (!store.state.user.socialAccounts) store.state.user.socialAccounts = {};
+                        if (!store.state.user.socialAccounts[id]) store.state.user.socialAccounts[id] = {};
+                        store.state.user.socialAccounts[id].connected = true;
+                    }
                 }
 
                 alert(`Successfully connected to ${id}!`);

@@ -139,47 +139,63 @@ export function Landing() {
           <div class="text-center section-header">
             <span class="badge"><i class="fas fa-tag"></i> Simple Pricing</span>
             <h2 style="margin-top: 1rem;">Choose your <span class="text-gradient">growth plan</span></h2>
-            <p style="max-width: 600px; margin: 1rem auto 0;">Start free, upgrade when you're ready. No credit card required.</p>
+            <p style="max-width: 600px; margin: 1rem auto 0;">Start creating viral content today. Upgrade anytime as you grow.</p>
           </div>
           <div class="pricing-grid">
+            <!-- Starter Plan -->
             <div class="pricing-card">
-              <h3>Starter</h3>
-              <div class="price">$0<span>/month</span></div>
+              <h3>🚀 Starter</h3>
+              <div class="price">$9<span>/month</span></div>
               <ul class="features-list">
-                <li><i class="fas fa-check"></i> 10 AI posts/month</li>
-                <li><i class="fas fa-check"></i> 2 social accounts</li>
-                <li><i class="fas fa-check"></i> Basic analytics</li>
+                <li><i class="fas fa-check"></i> 50 AI social posts / month</li>
+                <li><i class="fas fa-check"></i> Instagram, X (Twitter), Facebook, LinkedIn</li>
+                <li><i class="fas fa-check"></i> Image generation (basic)</li>
+                <li><i class="fas fa-check"></i> Manual posting</li>
                 <li><i class="fas fa-check"></i> Email support</li>
               </ul>
+              <p style="font-size: 0.85rem; color: var(--primary); margin-bottom: 1rem;">👉 Best for individuals</p>
               <a href="/register" class="btn btn-secondary" style="width: 100%;" data-link>Get Started</a>
             </div>
+            <!-- Pro Plan (Most Popular) -->
             <div class="pricing-card popular">
-              <span class="pricing-badge">Most Popular</span>
+              <span class="pricing-badge">🔥 Most Popular</span>
               <h3>Pro</h3>
               <div class="price">$29<span>/month</span></div>
               <ul class="features-list">
-                <li><i class="fas fa-check"></i> Unlimited AI posts</li>
-                <li><i class="fas fa-check"></i> 10 social accounts</li>
-                <li><i class="fas fa-check"></i> Advanced analytics</li>
-                <li><i class="fas fa-check"></i> AI image generation</li>
+                <li><i class="fas fa-check"></i> 300 AI social posts / month</li>
+                <li><i class="fas fa-check"></i> Instagram, X, Facebook, LinkedIn, Threads</li>
+                <li><i class="fas fa-check"></i> Image generation (HD)</li>
+                <li><i class="fas fa-check"></i> Post scheduling (calendar-based)</li>
+                <li><i class="fas fa-check"></i> Content repurposing</li>
+                <li><i class="fas fa-check"></i> Analytics dashboard</li>
                 <li><i class="fas fa-check"></i> Priority support</li>
-                <li><i class="fas fa-check"></i> Content calendar</li>
               </ul>
+              <p style="font-size: 0.85rem; color: var(--primary); margin-bottom: 1rem;">👉 Best for creators & agencies</p>
               <a href="/register" class="btn btn-primary" style="width: 100%;" data-link>Start Free Trial</a>
             </div>
+            <!-- Business Plan -->
             <div class="pricing-card">
-              <h3>Business</h3>
-              <div class="price">$99<span>/month</span></div>
+              <h3>👑 Business</h3>
+              <div class="price">$79<span>/month</span></div>
               <ul class="features-list">
-                <li><i class="fas fa-check"></i> Everything in Pro</li>
-                <li><i class="fas fa-check"></i> Unlimited accounts</li>
-                <li><i class="fas fa-check"></i> Team collaboration</li>
-                <li><i class="fas fa-check"></i> Custom branding</li>
+                <li><i class="fas fa-check"></i> Unlimited AI posts</li>
+                <li><i class="fas fa-check"></i> All platforms + future integrations</li>
+                <li><i class="fas fa-check"></i> Advanced analytics</li>
+                <li><i class="fas fa-check"></i> Team access</li>
                 <li><i class="fas fa-check"></i> API access</li>
                 <li><i class="fas fa-check"></i> Dedicated support</li>
               </ul>
+              <p style="font-size: 0.85rem; color: var(--primary); margin-bottom: 1rem;">👉 Best for businesses</p>
               <a href="/contact" class="btn btn-secondary" style="width: 100%;" data-link>Contact Sales</a>
             </div>
+          </div>
+          <!-- Paddle Trust Text -->
+          <div class="text-center" style="margin-top: 2rem;">
+            <p style="font-size: 0.9rem; opacity: 0.8;">
+              <i class="fas fa-lock" style="margin-right: 0.5rem;"></i>
+              Payments are securely processed by Paddle.<br>
+              Taxes and VAT are handled automatically.
+            </p>
           </div>
         </div>
       </section>
