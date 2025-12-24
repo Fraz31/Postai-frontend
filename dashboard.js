@@ -1,7 +1,20 @@
 /**
  * Social Monkey Dashboard Logic
- * Handles SPA navigation, data loading, and interactions
+ * Full SaaS Version - API Integrated
  */
+
+// Configuration - REPLACE WITH YOUR REAL PADDLE VALUES
+const PADDLE_CLIENT_TOKEN = 'test_token';
+const PADDLE_PRICE_IDS = {
+    starter: 'pri_starter_123',
+    pro: 'pri_pro_456',
+    business: 'pri_business_789'
+};
+
+// Handle generic backend URL from config or fallback
+let API_BASE = window.API_BASE || window.BACKEND_URL || 'https://postai-backend-z2yu.onrender.com';
+// Remove trailing /api if present, because our calls include /api
+API_BASE = API_BASE.replace(/\/api\/?$/, '');
 
 document.addEventListener('DOMContentLoaded', () => {
     // Check Auth
@@ -11,16 +24,43 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Initialize
+    // Initialize Paddle
+    if (window.Paddle) {
+        Paddle.Environment.set('sandbox'); // Set to 'production' for live
+        Paddle.Initialize({
+            token: PADDLE_CLIENT_TOKEN,
+            eventCallback: function (data) {
+                // Refresh subscription info on successful checkout
+                if (data.name === 'checkout.completed') {
+                    loadSubscriptionInfo();
+                    showToast('Subscription updated successfully!', 'success');
+                }
+            }
+        });
+    }
+
+    // Logout
+    document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.logout) {
+            window.logout();
+        } else {
+            localStorage.removeItem('socialmonkey_token');
+            window.location.href = 'index.html';
+        }
+    });
+
+    // Initialize Dashboard
     initDashboard();
     setupDashboardListeners();
 });
 
-function initDashboard() {
-    loadDashboardData();
-    loadContentLibrary();
-    loadSubscriptionInfo();
-    createCharts();
+async function initDashboard() {
+    await loadUserProfile(); // Load profile first to get connections
+    loadDashboardData();     // Load stats/recent posts
+    loadContentLibrary();    // Load full library
+    loadSubscriptionInfo();  // Load plan info
+    createCharts();          // Render charts
 
     // Set active tab from URL hash or default to overview
     const hash = window.location.hash.replace('#', '');
@@ -31,131 +71,140 @@ function initDashboard() {
     }
 }
 
-// --- Navigation ---
-function switchTab(tabId) {
-    // Update Sidebar
-    document.querySelectorAll('.sidebar-link').forEach(link => {
-        link.classList.remove('active');
-        if (link.dataset.tab === tabId) link.classList.add('active');
-    });
+// --- API Helpers ---
+async function apiCall(endpoint, method = 'GET', body = null) {
+    const token = localStorage.getItem('socialmonkey_token');
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    };
 
-    // Update Content
-    document.querySelectorAll('.dashboard-tab').forEach(tab => {
-        tab.style.display = 'none';
-    });
-    const activeTab = document.getElementById(`tab-${tabId}`);
-    if (activeTab) {
-        activeTab.style.display = 'block';
-        // Trigger animations for elements inside
-        activeTab.querySelectorAll('.glass-panel, .stat-card').forEach(el => {
-            el.style.animation = 'none';
-            el.offsetHeight; /* trigger reflow */
-            el.style.animation = 'slideIn 0.4s ease-out forwards';
-        });
+    try {
+        const fetchOptions = {
+            method,
+            headers,
+        };
+        if (body) fetchOptions.body = JSON.stringify(body);
+
+        const response = await fetch(`${API_BASE}${endpoint}`, fetchOptions);
+        const data = await response.json();
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                // Token expired
+                localStorage.removeItem('socialmonkey_token');
+                window.location.href = 'index.html#account';
+                return null;
+            }
+            throw new Error(data.message || 'API request failed');
+        }
+
+        return data;
+    } catch (error) {
+        console.error(`API Error (${endpoint}):`, error);
+        showToast(error.message, 'error');
+        throw error;
     }
-
-    // Update Header
-    const titles = {
-        overview: 'Dashboard',
-        create: 'Create Content',
-        library: 'Content Library',
-        analytics: 'Analytics',
-        settings: 'Settings'
-    };
-    const subtitles = {
-        overview: 'Welcome back to your command center.',
-        create: 'Generate magic with AI.',
-        library: 'Manage your generated posts.',
-        analytics: 'Track your growth and performance.',
-        settings: 'Manage your account and preferences.'
-    };
-
-    document.getElementById('pageTitle').textContent = titles[tabId];
-    document.getElementById('pageSubtitle').textContent = subtitles[tabId];
-
-    // Update URL hash without scrolling
-    history.pushState(null, null, `#${tabId}`);
 }
 
 // --- Data Loading ---
-function loadDashboardData() {
-    const content = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
 
-    // Update Stats
-    document.getElementById('totalPosts').textContent = content.length;
-    document.getElementById('totalEngagement').textContent = content.reduce((sum, item) => sum + (item.engagement || 0), 0).toLocaleString();
-    const platforms = new Set(content.flatMap(item => item.platforms || []));
-    document.getElementById('platformsUsed').textContent = platforms.size;
-
-    // Recent Activity (Top 3)
-    const recentList = document.getElementById('recentContentList');
-    if (recentList) {
-        if (content.length === 0) {
-            recentList.innerHTML = '<p class="text-muted">No recent activity.</p>';
-        } else {
-            recentList.innerHTML = content.slice(0, 3).map((item, index) => renderContentItem(item, index, true)).join('');
+async function loadUserProfile() {
+    try {
+        const data = await apiCall('/api/auth/me');
+        if (data && data.user) {
+            updateSettingsUI(data.user);
         }
+    } catch (e) {
+        console.warn('Failed to load profile');
     }
 }
 
-function loadContentLibrary() {
-    const content = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
-    const listEl = document.getElementById('fullContentList');
+async function loadDashboardData() {
+    try {
+        // Fetch recent posts for stats
+        const data = await apiCall('/api/posts?limit=100'); // Fetch enough for basic client-side stats
+        const posts = data.posts || [];
 
+        // Update Stats
+        document.getElementById('totalPosts').textContent = data.total || posts.length;
+
+        // Mock engagement stats since backend doesn't store them yet
+        const totalEngagement = posts.reduce((sum, p) => sum + (p.metadata?.engagement || Math.floor(Math.random() * 50)), 0);
+        document.getElementById('totalEngagement').textContent = totalEngagement.toLocaleString();
+
+        const platforms = new Set(posts.flatMap(item => item.platforms || []));
+        document.getElementById('platformsUsed').textContent = platforms.size;
+
+        // Recent Activity (Top 3)
+        const recentList = document.getElementById('recentContentList');
+        if (recentList) {
+            if (posts.length === 0) {
+                recentList.innerHTML = '<p class="text-muted">No recent activity.</p>';
+            } else {
+                recentList.innerHTML = posts.slice(0, 3).map((item, index) => renderContentItem(item, index, true)).join('');
+            }
+        }
+    } catch (e) {
+        console.error('Error loading dashboard data:', e);
+    }
+}
+
+async function loadContentLibrary() {
+    const listEl = document.getElementById('fullContentList');
     if (!listEl) return;
 
-    if (content.length === 0) {
-        listEl.innerHTML = '<div class="text-center" style="padding: 3rem;"><i class="fas fa-ghost" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;"></i><p>No content yet. Go create something!</p></div>';
-        return;
-    }
+    try {
+        const data = await apiCall('/api/posts?limit=50');
+        const posts = data.posts || [];
 
-    listEl.innerHTML = content.map((item, index) => renderContentItem(item, index)).join('');
+        if (posts.length === 0) {
+            listEl.innerHTML = '<div class="text-center" style="padding: 3rem;"><i class="fas fa-ghost" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;"></i><p>No content yet. Go create something!</p></div>';
+            return;
+        }
+
+        // Store posts globally/locally for filtering search
+        window.allPosts = posts;
+        renderLibrary(posts);
+
+    } catch (e) {
+        listEl.innerHTML = '<p class="text-center text-danger">Failed to load library.</p>';
+    }
+}
+
+function renderLibrary(posts) {
+    const listEl = document.getElementById('fullContentList');
+    listEl.innerHTML = posts.map((item, index) => renderContentItem(item, index)).join('');
 }
 
 async function loadSubscriptionInfo() {
     try {
-        const token = localStorage.getItem('socialmonkey_token');
-        if (!token) return;
-
-        const API_BASE = window.API_BASE || 'https://postai-backend-z2yu.onrender.com';
-        const response = await fetch(`${API_BASE}/api/subscription/me`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            console.warn('Failed to load subscription info');
-            return;
-        }
-
-        const data = await response.json();
-        if (!data.success || !data.subscription) return;
+        const data = await apiCall('/api/subscription/me');
+        if (!data || !data.subscription) return;
 
         const { plan, status, limits, dailyCredits } = data.subscription;
+        window.currentPlan = plan; // Store for upgrade logic
 
-        // Update Plan Name
+        // Update UI
         const planNameEl = document.getElementById('currentPlanName');
         if (planNameEl) {
             const planEmoji = { starter: '🚀', pro: '🔥', business: '👑' };
             planNameEl.textContent = `${planEmoji[plan] || ''} ${plan}`;
         }
 
-        // Update Status
         const statusEl = document.getElementById('subscriptionStatus');
         if (statusEl) {
             statusEl.textContent = status;
+            statusEl.className = 'badge';
             if (status === 'active') {
                 statusEl.style.background = 'rgba(0,255,136,0.2)';
                 statusEl.style.color = '#00ff88';
-            } else if (status === 'cancelled') {
+            } else {
                 statusEl.style.background = 'rgba(255,100,100,0.2)';
                 statusEl.style.color = '#ff6464';
             }
         }
 
-        // Update Usage
         const usedPosts = dailyCredits?.used || 0;
         const limitPosts = limits?.postsPerMonth || 50;
         const isUnlimited = !Number.isFinite(limitPosts);
@@ -166,42 +215,54 @@ async function loadSubscriptionInfo() {
         }
 
         const progressBar = document.getElementById('usageProgressBar');
-        if (progressBar && !isUnlimited) {
-            const percentage = Math.min((usedPosts / limitPosts) * 100, 100);
-            progressBar.style.width = `${percentage}%`;
-            if (percentage > 80) {
-                progressBar.style.background = 'linear-gradient(135deg, #ff6b6b, #ffa502)';
+        if (progressBar) {
+            if (isUnlimited) {
+                progressBar.style.width = '100%';
+                progressBar.style.background = 'linear-gradient(135deg, #00ff88, #00d4aa)';
+            } else {
+                const percentage = Math.min((usedPosts / limitPosts) * 100, 100);
+                progressBar.style.width = `${percentage}%`;
+                if (percentage > 90) progressBar.style.background = '#ff6464';
             }
-        } else if (progressBar && isUnlimited) {
-            progressBar.style.width = '100%';
-            progressBar.style.background = 'linear-gradient(135deg, #00ff88, #00d4aa)';
         }
 
-    } catch (err) {
-        console.error('Error loading subscription:', err);
+    } catch (e) {
+        console.warn('Subscription load error');
     }
 }
 
+// --- Actions & Rendering ---
+
 function renderContentItem(item, index, compact = false) {
+    // Handle both old localStorage format and new DB format
+    // DB format: { _id, content, platform, status, imageUrl, ... }
+    const id = item._id || index;
+    const contentText = item.content || item.prompt || '';
+    const platforms = Array.isArray(item.platform) ? item.platform : [item.platform].filter(Boolean);
+    const date = new Date(item.createdAt || item.created || Date.now()).toLocaleDateString();
+
     return `
         <div class="glass-panel" style="margin-bottom: 1rem; padding: ${compact ? '1rem' : '1.5rem'}; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.05);">
             <div class="flex-between" style="align-items: flex-start;">
                 <div style="flex: 1;">
                     <div class="flex-center" style="justify-content: flex-start; gap: 1rem; margin-bottom: 0.5rem;">
                         <span class="badge" style="background: rgba(139, 92, 246, 0.2); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 0.5rem; font-size: 0.75rem; text-transform: uppercase;">${item.contentType || 'Post'}</span>
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">${new Date(item.created || Date.now()).toLocaleDateString()}</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">${date}</span>
                     </div>
-                    <p style="margin-bottom: 1rem; color: var(--text-main); font-size: 0.95rem; line-height: 1.5;">${item.prompt.substring(0, 100)}${item.prompt.length > 100 ? '...' : ''}</p>
+                    <p style="margin-bottom: 1rem; color: var(--text-main); font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;">${contentText.substring(0, 150)}${contentText.length > 150 ? '...' : ''}</p>
+                    
+                    ${item.imageUrl ? `<img src="${item.imageUrl}" style="max-height: 100px; border-radius: 0.5rem; margin-bottom: 1rem; display: block;">` : ''}
+
                     <div style="display: flex; gap: 0.5rem;">
-                        ${(item.platforms || []).map(p => `<i class="fab fa-${p}" style="color: var(--text-muted);"></i>`).join('')}
+                        ${platforms.map(p => `<i class="fab fa-${p}" style="color: var(--text-muted);"></i>`).join('')}
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
-                    <button class="btn btn-secondary" onclick="copyContent(${index})" title="Copy" style="padding: 0.5rem; width: 32px; height: 32px;">
+                    <button class="btn btn-secondary" onclick="copyContent('${id}')" title="Copy" style="padding: 0.5rem; width: 32px; height: 32px;">
                         <i class="fas fa-copy"></i>
                     </button>
                     ${!compact ? `
-                    <button class="btn btn-secondary" onclick="deleteContent(${index})" title="Delete" style="padding: 0.5rem; width: 32px; height: 32px; color: var(--secondary);">
+                    <button class="btn btn-secondary" onclick="deleteContent('${id}')" title="Delete" style="padding: 0.5rem; width: 32px; height: 32px; color: var(--secondary);">
                         <i class="fas fa-trash"></i>
                     </button>` : ''}
                 </div>
@@ -212,46 +273,61 @@ function renderContentItem(item, index, compact = false) {
 
 // --- Interactions ---
 
-// Dashboard Create Form
+// 1. Create Content
 const dashForm = document.getElementById('dashboardContentForm');
 if (dashForm) {
     dashForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Reuse logic from script.js generateContent but adapted for dashboard IDs
         const contentType = document.getElementById('dashContentType').value;
         const prompt = document.getElementById('dashPrompt').value;
         const platforms = Array.from(document.querySelectorAll('input[name="dashPlatform"]:checked')).map(cb => cb.value);
 
         if (!prompt || platforms.length === 0) {
-            showToast('Please fill in all fields', 'error');
+            showToast('Please fill in prompt and select at least one platform', 'error');
             return;
         }
 
         setDashLoading(true);
 
-        // Simulate API call (using the same logic as script.js would, but we can call the global function if we refactored, 
-        // but let's just implement the demo logic here for robustness since script.js might be scoped)
+        try {
+            // 1. Generate Content
+            const genRes = await apiCall('/api/generate', 'POST', {
+                contentType,
+                prompt,
+                platforms,
+                generateImage: contentType === 'post' || contentType === 'caption' // Generate image contextually
+            });
 
-        setTimeout(() => {
-            const mockResult = `🐵 Generated ${contentType} for ${platforms.join(', ')}:\n\n${prompt}\n\n#SocialMonkey #AI`;
+            if (genRes.success) {
+                // Show result
+                const content = genRes.content;
+                document.getElementById('dashResultContent').textContent = content;
+                window.lastGeneratedContent = { ...genRes, prompt }; // Store for saving
+                document.getElementById('dashResultBox').style.display = 'block';
 
-            document.getElementById('dashResultContent').textContent = mockResult;
-            document.getElementById('dashResultBox').style.display = 'block';
+                showToast('Content generated successfully!', 'success');
 
-            // Save
-            const newItem = { contentType, prompt, platforms, result: mockResult, created: new Date().toISOString() };
-            const library = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
-            library.unshift(newItem);
-            localStorage.setItem('socialmonkey_content', JSON.stringify(library));
+                // Auto-save to DB as a draft/created post
+                await apiCall('/api/posts', 'POST', {
+                    content: content,
+                    platform: platforms[0], // Primary platform
+                    status: 'draft',
+                    contentType: contentType,
+                    imageUrl: genRes.meta?.imageUrl,
+                    metadata: genRes.meta
+                });
 
-            // Refresh data
-            loadDashboardData();
-            loadContentLibrary();
+                // Refresh library
+                loadContentLibrary();
+                loadDashboardData();
+            }
 
-            showToast('Content generated!', 'success');
+        } catch (err) {
+            // Already handled in apiCall
+        } finally {
             setDashLoading(false);
-        }, 1500);
+        }
     });
 }
 
@@ -259,70 +335,250 @@ function setDashLoading(isLoading) {
     const btn = document.getElementById('dashSubmitBtn');
     const txt = document.getElementById('dashBtnText');
     const spin = document.getElementById('dashBtnSpinner');
-
     if (btn) btn.disabled = isLoading;
     if (txt) txt.textContent = isLoading ? 'Generating...' : 'Generate Content';
     if (spin) spin.style.display = isLoading ? 'inline-block' : 'none';
 }
 
-function copyDashResult() {
-    const text = document.getElementById('dashResultContent').textContent;
-    navigator.clipboard.writeText(text);
-    showToast('Copied to clipboard!', 'success');
+// 2. Settings & Integrations
+function updateSettingsUI(user) {
+    // Name/Email
+    const nameInput = document.getElementById('settingsName');
+    const emailInput = document.getElementById('settingsEmail');
+    if (nameInput) nameInput.value = user.name || 'User'; // Fallback if name not in schema yet
+    if (emailInput) emailInput.value = user.email;
+
+    // API Key
+    const keyInput = document.getElementById('settingsOpenaiKey');
+    if (keyInput && user.apiKeys?.openai) {
+        keyInput.value = user.apiKeys.openai; // Or mask it
+        keyInput.placeholder = '••••••••••••••••';
+    }
+
+    // Social Connections
+    updateSocialStatus('twitter', user.socialAccounts?.twitter?.connected);
+    updateSocialStatus('linkedin', user.socialAccounts?.linkedin?.connected);
 }
 
-// Settings Form
-const settingsForm = document.getElementById('settingsForm');
-if (settingsForm) {
-    settingsForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('settingsName').value;
-        showToast(`Profile updated for ${name}!`, 'success');
-    });
+function updateSocialStatus(platform, isConnected) {
+    const statusEl = document.getElementById(`status-${platform}`);
+    const btnEl = document.getElementById(`btn-${platform}`);
+
+    if (isConnected) {
+        if (statusEl) {
+            statusEl.textContent = 'Connected';
+            statusEl.style.color = '#00ff88';
+            statusEl.style.opacity = '1';
+        }
+        if (btnEl) {
+            btnEl.textContent = 'Disconnect';
+            btnEl.className = 'btn btn-secondary btn-sm';
+            btnEl.onclick = () => disconnectSocial(platform);
+        }
+    } else {
+        if (statusEl) {
+            statusEl.textContent = 'Not Connected';
+            statusEl.style.color = 'var(--text-muted)';
+            statusEl.style.opacity = '0.7';
+        }
+        if (btnEl) {
+            btnEl.textContent = 'Connect';
+            btnEl.onclick = () => connectSocial(platform);
+        }
+    }
 }
+
+window.connectSocial = async (platform) => {
+    // Since we don't have OAuth, prompt for Access Token
+    const token = prompt(`Enter your ${platform} Access Token (Manual Connection):`);
+    if (!token) return;
+
+    try {
+        await apiCall('/api/auth/connection', 'POST', {
+            platform: platform,
+            token: token
+        });
+        showToast(`${platform} connected successfully!`, 'success');
+        loadUserProfile(); // Refresh UI
+    } catch (e) {
+        // Error handled
+    }
+};
+
+window.disconnectSocial = async (platform) => {
+    // For now, disonnecting isn't explicitly in API, but we can overwrite with empty token?
+    // Or add a disconnect endpoint. For MVP, we'll confirm and then say "feature pending" or similar
+    // Actually, let's just re-prompt to overwrite for now, or assume Connected is permanent in this MVP phase
+    if (confirm('Disconnecting will remove this account. Continue?')) {
+        // Calling with empty token might not work depending on backend validator.
+        // Let's just prompt user that this is a placeholder.
+        alert('Disconnect feature coming soon. You can overwrite the token by clicking Connect again.');
+    }
+};
+
+window.saveApiKey = async () => {
+    const key = document.getElementById('settingsOpenaiKey').value;
+    if (!key) {
+        showToast('Please enter an API key', 'error');
+        return;
+    }
+
+    try {
+        await apiCall('/api/auth/connection', 'POST', {
+            platform: 'openai',
+            token: key
+        });
+        showToast('OpenAI API Key saved!', 'success');
+    } catch (e) {
+        // Error handled
+    }
+};
+
+// 3. Navigation
+function switchTab(tabId) {
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.dataset.tab === tabId) link.classList.add('active');
+    });
+
+    document.querySelectorAll('.dashboard-tab').forEach(tab => {
+        tab.style.display = 'none';
+    });
+    const activeTab = document.getElementById(`tab-${tabId}`);
+    if (activeTab) {
+        activeTab.style.display = 'block';
+        activeTab.querySelectorAll('.glass-panel, .stat-card').forEach(el => {
+            el.style.animation = 'none';
+            el.offsetHeight;
+            el.style.animation = 'slideIn 0.4s ease-out forwards';
+        });
+    }
+
+    const titles = {
+        overview: 'Dashboard',
+        create: 'Create Content',
+        library: 'Content Library',
+        analytics: 'Analytics',
+        settings: 'Settings'
+    };
+    document.getElementById('pageTitle').textContent = titles[tabId] || 'Dashboard';
+    history.pushState(null, null, `#${tabId}`);
+}
+
+// 4. Global Actions
+window.switchTab = switchTab;
+
+window.copyContent = (id) => {
+    // Find content
+    const item = window.allPosts?.find(p => p._id === id) || {};
+    const text = item.content || item.prompt || document.getElementById('dashResultContent')?.textContent;
+
+    if (text) {
+        navigator.clipboard.writeText(text);
+        showToast('Copied to clipboard!', 'success');
+    }
+};
+
+window.copyDashResult = () => {
+    const text = document.getElementById('dashResultContent').textContent;
+    navigator.clipboard.writeText(text);
+    showToast('Copied!', 'success');
+};
+
+window.deleteContent = async (id) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+
+    try {
+        await apiCall(`/api/posts/${id}`, 'DELETE');
+        showToast('Post deleted', 'info');
+        loadContentLibrary();
+        loadDashboardData();
+    } catch (e) {
+        // Error handled
+    }
+};
+
+window.upgradePlan = (plan) => {
+    // Open Paddle Checkout
+    // Map plan name (e.g. 'pro') to price ID
+    const priceId = PADDLE_PRICE_IDS[plan];
+    if (!priceId) {
+        showToast('Invalid plan selected', 'error');
+        return;
+    }
+
+    // Need email to pre-fill?
+    const userEmail = document.getElementById('settingsEmail')?.value;
+
+    Paddle.Checkout.open({
+        items: [{ priceId: priceId, quantity: 1 }],
+        customer: { email: userEmail },
+        settings: {
+            displayMode: 'overlay',
+            theme: 'dark'
+        }
+    });
+};
 
 // Search
 document.getElementById('searchContent')?.addEventListener('input', (e) => {
     const query = e.target.value.toLowerCase();
-    const content = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
-    const filtered = content.filter(item =>
-        item.prompt.toLowerCase().includes(query) ||
-        item.contentType.toLowerCase().includes(query)
-    );
+    const posts = window.allPosts || [];
 
-    const listEl = document.getElementById('fullContentList');
-    if (filtered.length === 0) {
-        listEl.innerHTML = '<p class="text-center text-muted">No matches found.</p>';
-    } else {
-        listEl.innerHTML = filtered.map((item, index) => renderContentItem(item, index)).join('');
-    }
+    const filtered = posts.filter(item =>
+        (item.content || '').toLowerCase().includes(query) ||
+        (item.prompt || '').toLowerCase().includes(query)
+    );
+    renderLibrary(filtered);
 });
 
-// --- Listeners ---
-function setupDashboardListeners() {
-    // Sidebar Navigation
-    document.querySelectorAll('.sidebar-link[data-tab]').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchTab(link.dataset.tab);
+// 5. Charts
+function createCharts() {
+    // Performance Chart
+    const ctxPerf = document.getElementById('performanceChart')?.getContext('2d');
+    if (ctxPerf) {
+        new Chart(ctxPerf, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Engagement',
+                    data: [12, 19, 3, 5, 2, 3, 15], // Placeholder data
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
         });
-    });
-}
-
-// Make global for onclick handlers
-window.switchTab = switchTab;
-window.copyContent = (index) => {
-    const content = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
-    navigator.clipboard.writeText(content[index].result || content[index].prompt);
-    showToast('Copied!', 'success');
-};
-window.deleteContent = (index) => {
-    if (confirm('Delete this item?')) {
-        const content = JSON.parse(localStorage.getItem('socialmonkey_content') || '[]');
-        content.splice(index, 1);
-        localStorage.setItem('socialmonkey_content', JSON.stringify(content));
-        loadDashboardData();
-        loadContentLibrary();
-        showToast('Deleted.', 'info');
     }
-};
+
+    // Platform Chart
+    const ctxPlat = document.getElementById('platformChart')?.getContext('2d');
+    if (ctxPlat) {
+        new Chart(ctxPlat, {
+            type: 'doughnut',
+            data: {
+                labels: ['Twitter', 'LinkedIn', 'Instagram'],
+                datasets: [{
+                    data: [55, 30, 15], // Placeholder data
+                    backgroundColor: ['#1DA1F2', '#0077B5', '#E1306C'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+            }
+        });
+    }
+}
